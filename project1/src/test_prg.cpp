@@ -138,6 +138,7 @@ int main()
 				 PL1=mp;
 				 *mp=G_PLR0;
 			 }
+			 
 			 goldMine.drawMap();
 		 }
 		 else if(goldMine.getKey()=='K'|| goldMine.getKey()=='k')
