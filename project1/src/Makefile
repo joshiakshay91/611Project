@@ -1,5 +1,5 @@
 test_prg: test_prg.cpp libmap.a goldchase.h
-	g++ test_prg.cpp -o test_prg -L. -lmap -lpanel -lncurses -std=c++11
+	g++ test_prg.cpp -o test_prg -L. -lmap -lpanel -lpthread -lncurses -lm -lrt -std=c++11
 
 libmap.a: Screen.o Map.o
 	ar -r libmap.a Screen.o Map.o
