@@ -204,7 +204,7 @@ int main()
 
 		}
 
-	}//here semaphore not failed if ends
+	}//here semaphore not failed if ends on this line
 	else
 	{
 		char currentPlayer;
@@ -233,6 +233,16 @@ int main()
 		else if(!(Goldberg->players & G_PLR2))
 		{
 			currentPlayer=G_PLR2;
+			Goldberg->players|=currentPlayer;
+		}
+		else if(!(Goldberg->players & G_PLR3))
+		{
+			currentPlayer=G_PLR3;
+			Goldberg->players|=currentPlayer;
+		}
+		else if(!(Goldberg->players & G_PLR4))
+		{
+			currentPlayer=G_PLR4;
 			Goldberg->players|=currentPlayer;
 		}
 		/*else
