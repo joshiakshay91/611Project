@@ -38,19 +38,11 @@ int main()
 	string line,text;
 
 	sem_t *mysemaphore;
-	fd = shm_open("/APJMEMORY",O_RDWR, S_IRUSR | S_IWUSR);
-	if(fd==-1){
+	//fd = shm_open("/APJMEMORY",O_RDWR, S_IRUSR | S_IWUSR);
+	//if(fd==-1)
 
 	mysemaphore= sem_open("/APJgoldchase", O_CREAT|O_EXCL,
 			S_IROTH| S_IWOTH| S_IRGRP| S_IWGRP| S_IRUSR| S_IWUSR,1);
-	if(mysemaphore==SEM_FAILED)
-	{
-		if(errno!=EEXIST)
-		{
-			perror("semaphore error");
-			exit(1);
-		}
-	}
 	if(mysemaphore!=SEM_FAILED) //you are the first palyer
 	{
 		int mysemaphoreVal;
@@ -64,7 +56,7 @@ int main()
 			exit(1);
 		}
 
-		ifstream in("mymap.txt");
+		ifstream in("newmap.txt");
 		getline(in,line);
 		counter=std::atoi(line.c_str());
 		while(getline(in, line))
@@ -81,8 +73,8 @@ int main()
 			perror("FTRUNCATE FAILURE :");
 			exit(1);
 		}
-		Goldberg= (GameBoard*) mmap(NULL, area, PROT_READ|PROT_WRITE, MAP_SHARED,fd, 0);
-    Goldberg->rows=num_lines;
+		Goldberg= (GameBoard*) mmap(NULL, area+sizeof(GameBoard), PROT_READ|PROT_WRITE, MAP_SHARED,fd, 0);
+		Goldberg->rows=num_lines;
 		Goldberg->coloumns=line_length;
 		byte=0;
 		int index=0;
@@ -123,8 +115,8 @@ int main()
 			{
 				if(counter==1)
 				{
-				byte|=G_GOLD;
-				Goldberg->mapya[index]=byte;
+					byte|=G_GOLD;
+					Goldberg->mapya[index]=byte;
 				}else
 				{
 					byte|=G_FOOL;
@@ -133,12 +125,14 @@ int main()
 				counter--;
 			}
 		}
+		char myplayer=G_PLR0;
+		Goldberg->players=myplayer;
 		Map goldMine((char*)(Goldberg->mapya),num_lines,line_length);
 		bool loopFlag=true;
 		int player1Placement;
 		while(loopFlag)
 		{
-		  player1Placement=rand(engi);
+			player1Placement=rand(engi);
 			byte=0;
 			if(Goldberg->mapya[player1Placement]==0)
 			{
@@ -149,13 +143,16 @@ int main()
 			}
 		}
 		sem_post(mysemaphore);
-		sem_unlink("APJgoldchase");
+		//sem_unlink("APJgoldchase");
 
 		int a=0;
+		char button='m'; //just a garbage
 		goldMine.postNotice("This is a notice");
-		while(a=goldMine.getKey()!='Q')
+		while(button!='Q')
 		{
-			if(goldMine.getKey()=='h'||goldMine.getKey()=='H')
+			button=goldMine.getKey();
+			//				cerr<<"VAL OF b  -> "<<b<<endl;
+			if(button=='h')
 			{
 				sem_wait(mysemaphore);
 				if(Goldberg->mapya[player1Placement-1]!=G_WALL)
@@ -167,34 +164,153 @@ int main()
 				}
 				sem_post(mysemaphore);
 			}
+			else if(button=='k')
+			{
+				sem_wait(mysemaphore);
+				if(Goldberg->mapya[player1Placement+1]!=G_WALL)
+				{
+					Goldberg->mapya[player1Placement]=0;
+					player1Placement++;
+					Goldberg->mapya[player1Placement]=G_PLR0;
+					goldMine.drawMap();
+				}
+				sem_post(mysemaphore);
+			}
+			if(button=='j')
+			{
+				sem_wait(mysemaphore);
+				if(Goldberg->mapya[(player1Placement-line_length)]!=G_WALL)
+				{
+					Goldberg->mapya[player1Placement]=0;
+					player1Placement-=line_length;
+					Goldberg->mapya[player1Placement]|=G_PLR0;
+					goldMine.drawMap();
+				}
+				sem_post(mysemaphore);
+			}
+			else if(button=='l')
+			{
+				sem_wait(mysemaphore);
+				if(Goldberg->mapya[player1Placement+line_length]!=G_WALL)
+				{
+					Goldberg->mapya[player1Placement]=0;
+					player1Placement+=line_length;
+					Goldberg->mapya[player1Placement]=G_PLR0;
+					goldMine.drawMap();
+				}
+				sem_post(mysemaphore);
+			}
+
 
 		}
 
 	}//here semaphore not failed if ends
-}
-else{//player 2
-	GameBoard* Goldberg2= (GameBoard*) mmap(NULL, sizeof (GameBoard), PROT_READ|PROT_WRITE, MAP_SHARED,fd, 0);
-		std::uniform_int_distribution<int> rand(1,((Goldberg2->rows)*(Goldberg2->coloumns))); //here
-		engi.seed(aj());
+	else
+	{
+		char currentPlayer;
+		mysemaphore=sem_open("/APJgoldchase",O_RDWR);
 		sem_wait(mysemaphore);
-		Map goldMine((char*)(Goldberg2->mapya),Goldberg2->rows,Goldberg->coloumns);
+		fd = shm_open("/APJMEMORY", O_RDWR, S_IRUSR | S_IWUSR);
+		int player2rows;
+		int player2col;
+		read(fd,&player2rows,sizeof(int));
+		read(fd,&player2col,sizeof(int));
+		std::uniform_int_distribution<int> rand(1,(player2rows*player2col)); //here
+		engi.seed(aj());
+		GameBoard* Goldberg= (GameBoard*)mmap(NULL, player2rows*player2col+sizeof(GameBoard), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+		//sem_wait(mysemaphore);
+		//cerr<<"Goldberg->players "<<Goldberg->players<<endl;
+		if(!(Goldberg->players & G_PLR0))
+		{
+			currentPlayer=G_PLR0;
+			Goldberg->players|=currentPlayer;
+		}
+		else if(!(Goldberg->players & G_PLR1))
+		{
+			currentPlayer=G_PLR1;
+			Goldberg->players|=currentPlayer;
+		}
+		else if(!(Goldberg->players & G_PLR2))
+		{
+			currentPlayer=G_PLR2;
+			Goldberg->players|=currentPlayer;
+		}
+		/*else
+		{
+			cout<<"We are currently 3 player game Get out"<<endl;
+			exit (0);
+		}*/
+		Map goldMine((char*)(Goldberg->mapya),player2rows,player2col);
 		bool loopFlag=true;
 		int player2Placement;
 		while(loopFlag)
 		{
-		  player2Placement=rand(engi);
+			player2Placement=rand(engi);
 			byte=0;
-			if(Goldberg2->mapya[player2Placement]==0)
+			if(Goldberg->mapya[player2Placement]==0)
 			{
-				byte|=G_PLR1;
-				Goldberg2->mapya[player2Placement]=byte;
+				byte|=currentPlayer;
+				Goldberg->mapya[player2Placement]=byte;
 				loopFlag=false;
 				goldMine.drawMap();
 			}
 		}
 		sem_post(mysemaphore);
-
-cerr<<"CoDE for player 2"<<endl;
+		char a='p';
+		goldMine.postNotice("This is a notice");
+		while(a!='Q')
+		{
+			a=goldMine.getKey();
+			if(a=='h')
+			{
+				sem_wait(mysemaphore);
+				if(Goldberg->mapya[player2Placement-1]!=G_WALL)
+				{
+					Goldberg->mapya[player2Placement]=0;
+					player2Placement--;
+					Goldberg->mapya[player2Placement]=currentPlayer;
+					goldMine.drawMap();
+				}
+					sem_post(mysemaphore);
+			}
+			else if(a=='k')
+			{
+				sem_wait(mysemaphore);
+				if(Goldberg->mapya[player2Placement+1]!=G_WALL)
+				{
+					Goldberg->mapya[player2Placement]=0;
+					player2Placement++;
+					Goldberg->mapya[player2Placement]=currentPlayer;
+					goldMine.drawMap();
+				}
+					sem_post(mysemaphore);
+			}
+			else if(a=='j')
+			{
+				sem_wait(mysemaphore);
+				if(Goldberg->mapya[player2Placement-(Goldberg->rows)]!=G_WALL)
+				{
+					Goldberg->mapya[player2Placement]=0;
+					player2Placement-=(Goldberg->coloumns);
+					Goldberg->mapya[player2Placement]=currentPlayer;
+					goldMine.drawMap();
+				}
+					sem_post(mysemaphore);
+			}
+			else if(a=='l')
+			{
+				sem_wait(mysemaphore);
+				if(Goldberg->mapya[player2Placement+(Goldberg->rows)]!=G_WALL)
+				{
+					Goldberg->mapya[player2Placement]=0;
+					player2Placement+=(Goldberg->coloumns);
+					Goldberg->mapya[player2Placement]=currentPlayer;
+					goldMine.drawMap();
+				}
+					sem_post(mysemaphore);
+			}
+			goldMine.drawMap();//empty loop
+		}
 	}
 	sem_close(mysemaphore);
 	shm_unlink("/APJMEMORY");
