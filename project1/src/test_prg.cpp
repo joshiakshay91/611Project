@@ -16,13 +16,13 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
-
 struct GameBoard{
 	int rows;
 	int coloumns;
 	unsigned char players;
 	unsigned char mapya[0];
 };
+bool lastManStatus(GameBoard*);
 
 using namespace std;
 int main()
@@ -32,6 +32,7 @@ int main()
 	char byte=0;
 	int num_lines=0;
 	int line_length=0;
+	bool foolFlag=false;
 	GameBoard* Goldberg;
 	std::default_random_engine engi;
 	std::random_device aj;
@@ -56,7 +57,7 @@ int main()
 			exit(1);
 		}
 
-		ifstream in("newmap.txt");
+		ifstream in("mymap.txt");
 		getline(in,line);
 		counter=std::atoi(line.c_str());
 		while(getline(in, line))
@@ -67,8 +68,7 @@ int main()
 		}
 		const char* data = text.c_str();
 		int area = line_length*num_lines;
-
-		if((ftruncate(fd,(area + sizeof(GameBoard))))==-1)
+    if((ftruncate(fd,(area + sizeof(GameBoard))))==-1)
 		{
 			perror("FTRUNCATE FAILURE :");
 			exit(1);
@@ -115,10 +115,12 @@ int main()
 			{
 				if(counter==1)
 				{
+				  byte=0;
 					byte|=G_GOLD;
 					Goldberg->mapya[index]=byte;
 				}else
 				{
+					byte=0;
 					byte|=G_FOOL;
 					Goldberg->mapya[index]=byte;
 				}
@@ -144,7 +146,7 @@ int main()
 		}
 		sem_post(mysemaphore);
 		//sem_unlink("APJgoldchase");
-
+//		cerr<<"Rows: "<<num_lines<<" coloumns "<<line_length;
 		int a=0;
 		char button='m'; //just a garbage
 		goldMine.postNotice("This is a notice");
@@ -158,8 +160,29 @@ int main()
 				if(Goldberg->mapya[player1Placement-1]!=G_WALL)
 				{
 					Goldberg->mapya[player1Placement]=0;
+					if(foolFlag)
+					{
+						Goldberg->mapya[player1Placement]=G_FOOL;
+						foolFlag=false;
+					}
 					player1Placement--;
-					Goldberg->mapya[player1Placement]=G_PLR0;
+					if((Goldberg->mapya[player1Placement]!=G_FOOL)&&((Goldberg->mapya[player1Placement]!=G_GOLD)))
+					 {
+						 Goldberg->mapya[player1Placement]=G_PLR0;
+					 }
+					 else
+					 {
+						 if((Goldberg->mapya[player1Placement]==G_FOOL))
+						 {
+							 goldMine.postNotice("You been tricked its fools gold");
+							 foolFlag=true;
+						 }
+						 if((Goldberg->mapya[player1Placement]==G_GOLD))
+						 {
+							 goldMine.postNotice("Run barry you got the real gold");
+							 Goldberg->mapya[player1Placement]=G_PLR0;
+						 }
+					 }
 					goldMine.drawMap();
 				}
 				sem_post(mysemaphore);
@@ -170,8 +193,29 @@ int main()
 				if(Goldberg->mapya[player1Placement+1]!=G_WALL)
 				{
 					Goldberg->mapya[player1Placement]=0;
+					if(foolFlag)
+					{
+						Goldberg->mapya[player1Placement]=G_FOOL;
+						foolFlag=false;
+					}
 					player1Placement++;
-					Goldberg->mapya[player1Placement]=G_PLR0;
+					if((Goldberg->mapya[player1Placement]!=G_FOOL)&&((Goldberg->mapya[player1Placement]!=G_GOLD)))
+					 {
+						 Goldberg->mapya[player1Placement]=G_PLR0;
+					 }
+					 else
+					 {
+						 if((Goldberg->mapya[player1Placement]==G_FOOL))
+						 {
+							 goldMine.postNotice("You been tricked its fools gold");
+							 foolFlag=true;
+						 }
+						 if((Goldberg->mapya[player1Placement]==G_GOLD))
+						 {
+							 goldMine.postNotice("Run barry you got the real gold");
+							 Goldberg->mapya[player1Placement]=G_PLR0;
+						 }
+					 }
 					goldMine.drawMap();
 				}
 				sem_post(mysemaphore);
@@ -182,8 +226,29 @@ int main()
 				if(Goldberg->mapya[(player1Placement-line_length)]!=G_WALL)
 				{
 					Goldberg->mapya[player1Placement]=0;
+					if(foolFlag)
+					{
+						Goldberg->mapya[player1Placement]=G_FOOL;
+						foolFlag=false;
+					}
 					player1Placement-=line_length;
-					Goldberg->mapya[player1Placement]|=G_PLR0;
+					if((Goldberg->mapya[player1Placement]!=G_FOOL)&&((Goldberg->mapya[player1Placement]!=G_GOLD)))
+					 {
+						 Goldberg->mapya[player1Placement]=G_PLR0;
+					 }
+					 else
+					 {
+						 if((Goldberg->mapya[player1Placement]==G_FOOL))
+						 {
+							 goldMine.postNotice("You been tricked its fools gold");
+							 foolFlag=true;
+						 }
+						 if((Goldberg->mapya[player1Placement]==G_GOLD))
+						 {
+							 goldMine.postNotice("Run barry you got the real gold");
+							 Goldberg->mapya[player1Placement]=G_PLR0;
+						 }
+					 }
 					goldMine.drawMap();
 				}
 				sem_post(mysemaphore);
@@ -194,16 +259,41 @@ int main()
 				if(Goldberg->mapya[player1Placement+line_length]!=G_WALL)
 				{
 					Goldberg->mapya[player1Placement]=0;
+					if(foolFlag)
+					{
+						Goldberg->mapya[player1Placement]=G_FOOL;
+						foolFlag=false;
+					}
 					player1Placement+=line_length;
-					Goldberg->mapya[player1Placement]=G_PLR0;
+					if((Goldberg->mapya[player1Placement]!=G_FOOL)&&((Goldberg->mapya[player1Placement]!=G_GOLD)))
+					 {
+						 Goldberg->mapya[player1Placement]=G_PLR0;
+					 }
+					 else
+					 {
+						 if((Goldberg->mapya[player1Placement]==G_FOOL))
+						 {
+							 goldMine.postNotice("You been tricked its fools gold");
+							 foolFlag=true;
+						 }
+						 if((Goldberg->mapya[player1Placement]==G_GOLD))
+						 {
+							 goldMine.postNotice("Run barry you got the real gold");
+							 Goldberg->mapya[player1Placement]=G_PLR0;
+						 }
+					 }
 					goldMine.drawMap();
 				}
 				sem_post(mysemaphore);
 			}
-
-
+		}//while ends here
+		Goldberg->players &= ~myplayer;
+		if(lastManStatus(Goldberg))
+		{
+			sem_close(mysemaphore);
+			shm_unlink("/APJMEMORY");
+			sem_unlink("APJgoldchase");
 		}
-
 	}//here semaphore not failed if ends on this line
 	else
 	{
@@ -217,7 +307,11 @@ int main()
 		read(fd,&player2col,sizeof(int));
 		std::uniform_int_distribution<int> rand(1,(player2rows*player2col)); //here
 		engi.seed(aj());
-		GameBoard* Goldberg= (GameBoard*)mmap(NULL, player2rows*player2col+sizeof(GameBoard), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+		GameBoard* Goldberg= (GameBoard*)mmap(NULL, player2rows*player2col+sizeof(GameBoard),
+		PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+		Goldberg->rows=player2rows;
+		Goldberg->coloumns=player2col;
+		//cerr<<"ROWS p2 "<<player2rows<<" col p2 : "<<player2col<<endl;
 		//sem_wait(mysemaphore);
 		//cerr<<"Goldberg->players "<<Goldberg->players<<endl;
 		if(!(Goldberg->players & G_PLR0))
@@ -245,11 +339,12 @@ int main()
 			currentPlayer=G_PLR4;
 			Goldberg->players|=currentPlayer;
 		}
-		/*else
+		else
 		{
-			cout<<"We are currently 3 player game Get out"<<endl;
+			sem_post(mysemaphore);
+			cout<<"We are currently 5 player game Get out"<<endl;
 			exit (0);
-		}*/
+		}
 		Map goldMine((char*)(Goldberg->mapya),player2rows,player2col);
 		bool loopFlag=true;
 		int player2Placement;
@@ -276,9 +371,11 @@ int main()
 				sem_wait(mysemaphore);
 				if(Goldberg->mapya[player2Placement-1]!=G_WALL)
 				{
+					byte=0;
+					byte|=currentPlayer;
 					Goldberg->mapya[player2Placement]=0;
 					player2Placement--;
-					Goldberg->mapya[player2Placement]=currentPlayer;
+					Goldberg->mapya[player2Placement]=byte;
 					goldMine.drawMap();
 				}
 					sem_post(mysemaphore);
@@ -288,9 +385,11 @@ int main()
 				sem_wait(mysemaphore);
 				if(Goldberg->mapya[player2Placement+1]!=G_WALL)
 				{
+					byte=0;
+					byte|=currentPlayer;
 					Goldberg->mapya[player2Placement]=0;
 					player2Placement++;
-					Goldberg->mapya[player2Placement]=currentPlayer;
+					Goldberg->mapya[player2Placement]=byte;
 					goldMine.drawMap();
 				}
 					sem_post(mysemaphore);
@@ -298,11 +397,13 @@ int main()
 			else if(a=='j')
 			{
 				sem_wait(mysemaphore);
-				if(Goldberg->mapya[player2Placement-(Goldberg->rows)]!=G_WALL)
+				if(Goldberg->mapya[player2Placement-(Goldberg->coloumns)]!=G_WALL)
 				{
+					byte=0;
+					byte|=currentPlayer;
 					Goldberg->mapya[player2Placement]=0;
 					player2Placement-=(Goldberg->coloumns);
-					Goldberg->mapya[player2Placement]=currentPlayer;
+					Goldberg->mapya[player2Placement]=byte;
 					goldMine.drawMap();
 				}
 					sem_post(mysemaphore);
@@ -310,19 +411,34 @@ int main()
 			else if(a=='l')
 			{
 				sem_wait(mysemaphore);
-				if(Goldberg->mapya[player2Placement+(Goldberg->rows)]!=G_WALL)
+				if(Goldberg->mapya[player2Placement+(Goldberg->coloumns)]!=G_WALL)
 				{
+					byte=0;
+					byte|=currentPlayer;
 					Goldberg->mapya[player2Placement]=0;
 					player2Placement+=(Goldberg->coloumns);
-					Goldberg->mapya[player2Placement]=currentPlayer;
+					Goldberg->mapya[player2Placement]=byte;
 					goldMine.drawMap();
 				}
 					sem_post(mysemaphore);
 			}
 			goldMine.drawMap();//empty loop
 		}
+		Goldberg->players &= ~currentPlayer;
+    if(lastManStatus(Goldberg))
+		{
+			sem_close(mysemaphore);
+			shm_unlink("/APJMEMORY");
+			sem_unlink("APJgoldchase");
+		}
 	}
-	sem_close(mysemaphore);
-	shm_unlink("/APJMEMORY");
-	sem_unlink("APJgoldchase");
+}
+
+bool lastManStatus(GameBoard* Goldberg){
+
+if((!(Goldberg->players & G_PLR0)) && (!(Goldberg->players & G_PLR1)) && (!(Goldberg->players & G_PLR2)) && (!(Goldberg->players & G_PLR3)) && (!(Goldberg->players & G_PLR4)))
+{
+	return true;
+}
+return false;
 }
