@@ -1,9 +1,11 @@
+// Screen.cpp, Version 1.2 (11 Mar 2015)
 #include<ncurses.h>
 #include<panel.h>
 #include<cstdlib>
 #include<cstring>
 #include<utility> //for std::pair
 #include<stdexcept>
+#include<unistd.h>
 
 #include"goldchase.h"
 #include"Screen.h"
@@ -51,7 +53,7 @@ Screen::Screen(int h, int w)
   {
     _two_second_error("WINDOW NOT LARGE ENOUGH!");
     endwin();
-    std::exit(1);
+    throw std::runtime_error("window not large enough");
   }
   //outerWindow is +2 because it boxes L*W inner contents
   WINDOW* outerWindow=newwin(h+2,w+2,0,0);;
@@ -79,6 +81,68 @@ void Screen::notice(const char* msg)
   delwin(dialog);
   panelRefresh();
 
+}
+
+int Screen::getOrdinal(const char* title, const std::vector<int>& nums)
+{
+  if(nums.size() > screenHeight-2 || nums.size() > 10)
+  {
+    _two_second_error("too many numbers!");
+    return(nums.size() > 0 ? nums[0] : 0);
+  }
+  int titlewidth=strlen(title)+2 > 5 ? strlen(title)+2 : 5;
+  int ycoord= screenHeight/2-(nums.size()+2)/2;
+  int xcoord= screenWidth/2-titlewidth/2;
+  WINDOW* dialog=newwin(nums.size()+2,titlewidth,ycoord,xcoord);
+  PANEL* dialog_panel=new_panel(dialog);
+  box(dialog,0,0);
+  mvwprintw(dialog,0,titlewidth/2-strlen(title)/2,title);
+  for(int i=1; i<nums.size()+1; ++i)
+  {
+    char numAsStr[5];
+    sprintf(numAsStr,"%d",nums[i-1]);
+    mvwprintw(dialog,i,titlewidth/2-strlen(numAsStr)/2,numAsStr);
+  }
+  panelRefresh();
+  int keystroke;
+  bool valid=false;
+  do
+  {
+    keystroke=getch();
+    int i=0;
+    for(int i=0; i<nums.size(); ++i)
+      if(nums[i]==keystroke-'0')
+      {
+        valid=true;
+        break;
+      }
+  } while(!valid);
+  del_panel(dialog_panel);
+  delwin(dialog);
+  panelRefresh();
+  return keystroke-'0';
+}
+
+std::string Screen::getText(void)
+{
+  int greater=110<screenWidth-2 ? 110 : screenWidth-2;
+  int ycoord= screenHeight>1 ? screenHeight/2-2 : 0;
+  int xcoord=screenWidth>greater ? screenWidth/2-greater/2-1 : 0;
+  WINDOW* dialog=newwin(3,greater+2,ycoord,xcoord);
+  PANEL* dialog_panel=new_panel(dialog);
+  box(dialog,0,0);
+  wmove(dialog,1,1);
+  panelRefresh();
+  char str[111];
+  curs_set(1);
+  echo();
+  wgetnstr(dialog,str,greater);
+  noecho();
+  curs_set(0);
+  del_panel(dialog_panel);
+  delwin(dialog);
+  panelRefresh();
+  return(std::string(str));
 }
 
 Screen::~Screen()

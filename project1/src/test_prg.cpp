@@ -129,7 +129,7 @@ int main()
 		}
 		char myplayer=G_PLR0;
 		Goldberg->players=myplayer;
-		Map goldMine((char*)(Goldberg->mapya),num_lines,line_length);
+		Map goldMine((Goldberg->mapya),num_lines,line_length);
 		bool loopFlag=true;
 		int player1Placement;
 		while(loopFlag)
@@ -345,7 +345,7 @@ int main()
 			cout<<"We are currently 5 player game Get out"<<endl;
 			exit (0);
 		}
-		Map goldMine((char*)(Goldberg->mapya),player2rows,player2col);
+		Map goldMine((Goldberg->mapya),player2rows,player2col);
 		bool loopFlag=true;
 		int player2Placement;
 		while(loopFlag)
