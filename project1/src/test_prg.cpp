@@ -23,6 +23,7 @@ struct GameBoard{
 	unsigned char mapya[0];
 };
 bool lastManStatus(GameBoard*);
+void movement(GameBoard*,int,Map,char);
 
 using namespace std;
 int main()
@@ -147,7 +148,8 @@ int main()
 		sem_post(mysemaphore);
 		//sem_unlink("APJgoldchase");
 //		cerr<<"Rows: "<<num_lines<<" coloumns "<<line_length;
-		int a=0;
+movement(Goldberg,player1Placement,goldMine,myplayer);
+/*		int a=0;
 		char button='m'; //just a garbage
 		goldMine.postNotice("This is a notice");
 		while(button!='Q')
@@ -287,6 +289,7 @@ int main()
 				sem_post(mysemaphore);
 			}
 		}//while ends here
+	*/
 		Goldberg->players &= ~myplayer;
 		if(lastManStatus(Goldberg))
 		{
@@ -361,7 +364,8 @@ int main()
 			}
 		}
 		sem_post(mysemaphore);
-		char a='p';
+		movement(Goldberg,player2Placement,goldMine,currentPlayer);
+/*		char a='p';
 		goldMine.postNotice("This is a notice");
 		while(a!='Q')
 		{
@@ -423,7 +427,7 @@ int main()
 					sem_post(mysemaphore);
 			}
 			goldMine.drawMap();//empty loop
-		}
+		}*/
 		Goldberg->players &= ~currentPlayer;
     if(lastManStatus(Goldberg))
 		{
@@ -441,4 +445,169 @@ if((!(Goldberg->players & G_PLR0)) && (!(Goldberg->players & G_PLR1)) && (!(Gold
 	return true;
 }
 return false;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void movement(GameBoard* Goldberg,int player1Placement,Map goldMine,char myplayer)
+{
+	bool foolFlag=false;
+  //char G_PLR0=myplayer;
+	int line_length=Goldberg->coloumns;
+
+
+	char button='m'; //just a garbage
+	goldMine.postNotice("This is a notice");
+	while(button!='Q')
+	{
+		button=goldMine.getKey();
+		//				cerr<<"VAL OF b  -> "<<b<<endl;
+		if(button=='h')
+		{
+		//	sem_wait(mysemaphore);
+			if(Goldberg->mapya[player1Placement-1]!=G_WALL)
+			{
+				Goldberg->mapya[player1Placement]=0;
+				if(foolFlag)
+				{
+					Goldberg->mapya[player1Placement]=G_FOOL;
+					foolFlag=false;
+				}
+				player1Placement--;
+				if((Goldberg->mapya[player1Placement]!=G_FOOL)&&((Goldberg->mapya[player1Placement]!=G_GOLD)))
+				 {
+					 Goldberg->mapya[player1Placement]=myplayer;
+				 }
+				 else
+				 {
+					 if((Goldberg->mapya[player1Placement]==G_FOOL))
+					 {
+						 goldMine.postNotice("You been tricked its fools gold");
+						 foolFlag=true;
+					 }
+					 if((Goldberg->mapya[player1Placement]==G_GOLD))
+					 {
+						 goldMine.postNotice("Run barry you got the real gold");
+						 Goldberg->mapya[player1Placement]=myplayer;
+					 }
+				 }
+				goldMine.drawMap();
+			}
+	//		sem_post(mysemaphore);
+		}
+		else if(button=='k')
+		{
+		//	sem_wait(mysemaphore);
+			if(Goldberg->mapya[player1Placement+1]!=G_WALL)
+			{
+				Goldberg->mapya[player1Placement]=0;
+				if(foolFlag)
+				{
+					Goldberg->mapya[player1Placement]=G_FOOL;
+					foolFlag=false;
+				}
+				player1Placement++;
+				if((Goldberg->mapya[player1Placement]!=G_FOOL)&&((Goldberg->mapya[player1Placement]!=G_GOLD)))
+				 {
+					 Goldberg->mapya[player1Placement]=myplayer;
+				 }
+				 else
+				 {
+					 if((Goldberg->mapya[player1Placement]==G_FOOL))
+					 {
+						 goldMine.postNotice("You been tricked its fools gold");
+						 foolFlag=true;
+					 }
+					 if((Goldberg->mapya[player1Placement]==G_GOLD))
+					 {
+						 goldMine.postNotice("Run barry you got the real gold");
+						 Goldberg->mapya[player1Placement]=myplayer;
+					 }
+				 }
+				goldMine.drawMap();
+			}
+	//		sem_post(mysemaphore);
+		}
+		if(button=='j')
+		{
+		//	sem_wait(mysemaphore);
+			if(Goldberg->mapya[(player1Placement-line_length)]!=G_WALL)
+			{
+				Goldberg->mapya[player1Placement]=0;
+				if(foolFlag)
+				{
+					Goldberg->mapya[player1Placement]=G_FOOL;
+					foolFlag=false;
+				}
+				player1Placement-=line_length;
+				if((Goldberg->mapya[player1Placement]!=G_FOOL)&&((Goldberg->mapya[player1Placement]!=G_GOLD)))
+				 {
+					 Goldberg->mapya[player1Placement]=myplayer;
+				 }
+				 else
+				 {
+					 if((Goldberg->mapya[player1Placement]==G_FOOL))
+					 {
+						 goldMine.postNotice("You been tricked its fools gold");
+						 foolFlag=true;
+					 }
+					 if((Goldberg->mapya[player1Placement]==G_GOLD))
+					 {
+						 goldMine.postNotice("Run barry you got the real gold");
+						 Goldberg->mapya[player1Placement]=myplayer;
+					 }
+				 }
+				goldMine.drawMap();
+			}
+		//	sem_post(mysemaphore);
+		}
+		else if(button=='l')
+		{
+			//sem_wait(mysemaphore);
+			if(Goldberg->mapya[player1Placement+line_length]!=G_WALL)
+			{
+				Goldberg->mapya[player1Placement]=0;
+				if(foolFlag)
+				{
+					Goldberg->mapya[player1Placement]=G_FOOL;
+					foolFlag=false;
+				}
+				player1Placement+=line_length;
+				if((Goldberg->mapya[player1Placement]!=G_FOOL)&&((Goldberg->mapya[player1Placement]!=G_GOLD)))
+				 {
+					 Goldberg->mapya[player1Placement]=myplayer;
+				 }
+				 else
+				 {
+					 if((Goldberg->mapya[player1Placement]==G_FOOL))
+					 {
+						 goldMine.postNotice("You been tricked its fools gold");
+						 foolFlag=true;
+					 }
+					 if((Goldberg->mapya[player1Placement]==G_GOLD))
+					 {
+						 goldMine.postNotice("Run barry you got the real gold");
+						 Goldberg->mapya[player1Placement]=myplayer;
+					 }
+				 }
+				goldMine.drawMap();
+			}
+			//sem_post(mysemaphore);
+		}
+	}//while ends here
+
+
+
 }
