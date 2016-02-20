@@ -52,7 +52,7 @@ int main()
 			exit(1);
 		}
 
-		ifstream in("newmap.txt");
+		ifstream in("mymap.txt");
 		getline(in,line);
 		counter=std::atoi(line.c_str());
 		while(getline(in, line))
@@ -135,7 +135,7 @@ int main()
 				if(GoldBoard->mapya[player1Placement]==0)
 				{
 					byte|=G_PLR0;
-					GoldBoard->mapya[player1Placement]=byte;
+					GoldBoard->mapya[player1Placement]|=byte;
 					loopFlag=false;
 					goldMine.drawMap();
 				}
@@ -223,7 +223,7 @@ int main()
 				if(GoldBoard->mapya[player2Placement]==0)
 				{
 					byte|=currentPlayer;
-					GoldBoard->mapya[player2Placement]=byte;
+					GoldBoard->mapya[player2Placement]|=byte;
 					loopFlag=false;
 					goldMine.drawMap();
 				}
@@ -274,31 +274,37 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map goldMine,char myplaye
 		{
 			if(((playerPlacement)%(MapCol))!=0)
 			{
-				sem_wait(mysemaphore);
 				if(GoldBoard->mapya[playerPlacement-1]!=G_WALL)
 				{
-					GoldBoard->mapya[playerPlacement]=0;
+					sem_wait(mysemaphore);
+					GoldBoard->mapya[playerPlacement]&=~myplayer;
 					playerPlacement--;
 					if((GoldBoard->mapya[playerPlacement]!=G_FOOL)&&((GoldBoard->mapya[playerPlacement]!=G_GOLD)))
 					{
-						GoldBoard->mapya[playerPlacement]=myplayer;
+						GoldBoard->mapya[playerPlacement]|=myplayer;
+						sem_post(mysemaphore);
 					}
 					else
 					{
 						if((GoldBoard->mapya[playerPlacement]==G_FOOL))
 						{
-							goldMine.postNotice("You been tricked its fools gold");
-						}
-						if((GoldBoard->mapya[playerPlacement]==G_GOLD))
-						{
-							goldMine.postNotice("Run barry you got the real gold");
+							GoldBoard->mapya[playerPlacement]&=~G_FOOL;
 							GoldBoard->mapya[playerPlacement]=myplayer;
+							sem_post(mysemaphore);
+							goldMine.postNotice("Tricked You!!! 'FOOLS GOLD'");
+						}
+						else if((GoldBoard->mapya[playerPlacement]==G_GOLD))
+						{
+							GoldBoard->mapya[playerPlacement]&=~G_GOLD;
+							GoldBoard->mapya[playerPlacement]|=myplayer;
+							sem_post(mysemaphore);
+							goldMine.postNotice("You got REAL GOLD make your escape!!!");
 							GoldFlag=true;
 						}
 					}
 					goldMine.drawMap();
 				}
-				sem_post(mysemaphore);
+
 			}
 			else if(GoldFlag)
 			{
@@ -311,31 +317,37 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map goldMine,char myplaye
 		{
 			if(((playerPlacement+1)%(MapCol))!=0)
 			{
-				sem_wait(mysemaphore);
 				if(GoldBoard->mapya[playerPlacement+1]!=G_WALL)
 				{
-					GoldBoard->mapya[playerPlacement]=0;
+					sem_wait(mysemaphore);
+					GoldBoard->mapya[playerPlacement]&=~myplayer;
 					playerPlacement++;
 					if((GoldBoard->mapya[playerPlacement]!=G_FOOL)&&((GoldBoard->mapya[playerPlacement]!=G_GOLD)))
 					{
-						GoldBoard->mapya[playerPlacement]=myplayer;
+						GoldBoard->mapya[playerPlacement]|=myplayer;
+						sem_post(mysemaphore);
 					}
 					else
 					{
 						if((GoldBoard->mapya[playerPlacement]==G_FOOL))
 						{
-							goldMine.postNotice("You been tricked its fools gold");
+							GoldBoard->mapya[playerPlacement]&=~G_FOOL;
+							GoldBoard->mapya[playerPlacement]=myplayer;
+							sem_post(mysemaphore);
+							goldMine.postNotice("Tricked You!!! 'FOOLS GOLD'");
 						}
-						if((GoldBoard->mapya[playerPlacement]==G_GOLD))
+						else if((GoldBoard->mapya[playerPlacement]==G_GOLD))
 						{
-							goldMine.postNotice("Run barry you got the real gold");
+							GoldBoard->mapya[playerPlacement]&=~G_GOLD;
 							GoldFlag=true;
 							GoldBoard->mapya[playerPlacement]=myplayer;
+							sem_post(mysemaphore);
+							goldMine.postNotice("You got REAL GOLD make your escape!!!");
 						}
 					}
 					goldMine.drawMap();
 				}
-				sem_post(mysemaphore);
+
 			}
 			else if(GoldFlag)
 			{
@@ -349,31 +361,36 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map goldMine,char myplaye
 		{
 			if((playerPlacement-MapCol)>=0)
 			{
-				sem_wait(mysemaphore);
 				if(GoldBoard->mapya[(playerPlacement-MapCol)]!=G_WALL)
 				{
-					GoldBoard->mapya[playerPlacement]=0;
+					sem_wait(mysemaphore);
+					GoldBoard->mapya[playerPlacement]&=~myplayer;
 					playerPlacement-=MapCol;
 					if((GoldBoard->mapya[playerPlacement]!=G_FOOL)&&((GoldBoard->mapya[playerPlacement]!=G_GOLD)))
 					{
-						GoldBoard->mapya[playerPlacement]=myplayer;
+						GoldBoard->mapya[playerPlacement]|=myplayer;
+						sem_post(mysemaphore);
 					}
 					else
 					{
 						if((GoldBoard->mapya[playerPlacement]==G_FOOL))
 						{
-							goldMine.postNotice("You been tricked its fools gold");
-						}
-						if((GoldBoard->mapya[playerPlacement]==G_GOLD))
-						{
-							goldMine.postNotice("Run barry you got the real gold");
+							GoldBoard->mapya[playerPlacement]&=~G_FOOL;
 							GoldBoard->mapya[playerPlacement]=myplayer;
+							sem_post(mysemaphore);
+							goldMine.postNotice("Tricked You!!! 'FOOLS GOLD'");
+						}
+						else if((GoldBoard->mapya[playerPlacement]==G_GOLD))
+						{
+							GoldBoard->mapya[playerPlacement]&=~G_GOLD;
+							GoldBoard->mapya[playerPlacement]=myplayer;
+							sem_post(mysemaphore);
 							GoldFlag=true;
+							goldMine.postNotice("You got REAL GOLD make your escape!!!");
 						}
 					}
 					goldMine.drawMap();
 				}
-				sem_post(mysemaphore);
 			}
 			else if(GoldFlag)
 			{
@@ -386,31 +403,36 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map goldMine,char myplaye
 		{
 			if((playerPlacement+MapCol)<(MapRow*MapCol))
 			{
-				sem_wait(mysemaphore);
 				if(GoldBoard->mapya[playerPlacement+MapCol]!=G_WALL)
 				{
-					GoldBoard->mapya[playerPlacement]=0;
+					sem_wait(mysemaphore);
+					GoldBoard->mapya[playerPlacement]&=~myplayer;
 					playerPlacement+=MapCol;
 					if((GoldBoard->mapya[playerPlacement]!=G_FOOL)&&((GoldBoard->mapya[playerPlacement]!=G_GOLD)))
 					{
-						GoldBoard->mapya[playerPlacement]=myplayer;
+						GoldBoard->mapya[playerPlacement]|=myplayer;
+						sem_post(mysemaphore);
 					}
 					else
 					{
 						if((GoldBoard->mapya[playerPlacement]==G_FOOL))
 						{
-							goldMine.postNotice("You been tricked its fools gold");
-						}
-						if((GoldBoard->mapya[playerPlacement]==G_GOLD))
-						{
-							goldMine.postNotice("Run barry you got the real gold");
+							GoldBoard->mapya[playerPlacement]&=~G_FOOL;
 							GoldBoard->mapya[playerPlacement]=myplayer;
+							sem_post(mysemaphore);
+							goldMine.postNotice("Tricked You!!! 'FOOLS GOLD'");
+						}
+						else if((GoldBoard->mapya[playerPlacement]==G_GOLD))
+						{
+							GoldBoard->mapya[playerPlacement]&=~G_GOLD;
+							GoldBoard->mapya[playerPlacement]=myplayer;
+							sem_post(mysemaphore);
 							GoldFlag=true;
+							goldMine.postNotice("You got REAL GOLD make your escape!!!");
 						}
 					}
 					goldMine.drawMap();
 				}
-				sem_post(mysemaphore);
 			}
 			else if(GoldFlag)
 			{
@@ -420,6 +442,6 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map goldMine,char myplaye
 		}
 	}//while ends here
 	sem_wait(mysemaphore);
-	GoldBoard->mapya[playerPlacement]=0;
+	GoldBoard->mapya[playerPlacement]&=~myplayer;
 	sem_post(mysemaphore);
 }
