@@ -1,3 +1,7 @@
+/*
+Author: Akshay Joshi
+Date: 20 Feb 2016
+*/
 #include "goldchase.h"
 #include "Map.h"
 #include <iostream>
@@ -15,16 +19,20 @@
 #include <stdio.h>
 #include <sys/mman.h>
 #include <unistd.h>
-struct GameBoard{
+
+struct GameBoard
+{
 	int rows;
 	int coloumns;
 	unsigned char players;
 	unsigned char mapya[0];
 };
+
 bool lastManStatus(GameBoard*);
 void movement(GameBoard*,int,Map,char,sem_t*);
-
+char playerSpot(GameBoard*);
 using namespace std;
+
 int main()
 {
 	int counter;
@@ -33,6 +41,7 @@ int main()
 	int num_lines=0;
 	int line_length=0;
 	GameBoard* GoldBoard;
+	bool lastPos= false; //checking the last player status;
 	std::default_random_engine engi;
 	std::random_device aj;
 	string line,text;
@@ -41,8 +50,6 @@ int main()
 			S_IROTH| S_IWOTH| S_IRGRP| S_IWGRP| S_IRUSR| S_IWUSR,1);
 	if(mysemaphore!=SEM_FAILED) //you are the first palyer
 	{
-		int mysemaphoreVal;
-		sem_getvalue(mysemaphore,&mysemaphoreVal);
 		sem_wait(mysemaphore);
 
 		fd = shm_open("/APJMEMORY", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
@@ -153,13 +160,8 @@ int main()
 			}
 		}
 		GoldBoard->players &= ~myplayer;
-		if(lastManStatus(GoldBoard))
-		{
-			sem_close(mysemaphore);
-			shm_unlink("/APJMEMORY");
-			sem_unlink("APJgoldchase");
-		}
-	}//here semaphore not failed if ends on this line
+		lastPos=lastManStatus(GoldBoard);
+	}// if ends on this line
 	else
 	{
 		char currentPlayer;
@@ -181,36 +183,12 @@ int main()
 				PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
 		GoldBoard->rows=player2rows;
 		GoldBoard->coloumns=player2col;
-		if(!(GoldBoard->players & G_PLR0))
-		{
-			currentPlayer=G_PLR0;
-			GoldBoard->players|=currentPlayer;
-		}
-		else if(!(GoldBoard->players & G_PLR1))
-		{
-			currentPlayer=G_PLR1;
-			GoldBoard->players|=currentPlayer;
-		}
-		else if(!(GoldBoard->players & G_PLR2))
-		{
-			currentPlayer=G_PLR2;
-			GoldBoard->players|=currentPlayer;
-		}
-		else if(!(GoldBoard->players & G_PLR3))
-		{
-			currentPlayer=G_PLR3;
-			GoldBoard->players|=currentPlayer;
-		}
-		else if(!(GoldBoard->players & G_PLR4))
-		{
-			currentPlayer=G_PLR4;
-			GoldBoard->players|=currentPlayer;
-		}
-		else
+		currentPlayer=playerSpot(GoldBoard);
+		if(currentPlayer=='F')
 		{
 			sem_post(mysemaphore);
-			cout<<"We are currently 5 player game Get out"<<endl;
-			exit (0);
+			cout<<"We are currently Full, Get out...!!!"<<endl;
+			exit(0);
 		}
 		try{
 			Map goldMine((GoldBoard->mapya),player2rows,player2col);
@@ -241,19 +219,23 @@ int main()
 			}
 		}
 		GoldBoard->players &= ~currentPlayer;
-		if(lastManStatus(GoldBoard))
-		{
+		lastPos=lastManStatus(GoldBoard);
+	}
+	if(lastPos)
+	{
 			sem_close(mysemaphore);
 			shm_unlink("/APJMEMORY");
 			sem_unlink("APJgoldchase");
-		}
 	}
+	return 0;
 }
 
 bool lastManStatus(GameBoard* GoldBoard)
 {
 
-	if((!(GoldBoard->players & G_PLR0)) && (!(GoldBoard->players & G_PLR1)) && (!(GoldBoard->players & G_PLR2)) && (!(GoldBoard->players & G_PLR3)) && (!(GoldBoard->players & G_PLR4)))
+	if((!(GoldBoard->players & G_PLR0)) && (!(GoldBoard->players & G_PLR1))
+			&& (!(GoldBoard->players & G_PLR2)) && (!(GoldBoard->players & G_PLR3))
+			&& (!(GoldBoard->players & G_PLR4)))
 	{
 		return true;
 	}
@@ -444,4 +426,40 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map goldMine,char myplaye
 	sem_wait(mysemaphore);
 	GoldBoard->mapya[playerPlacement]&=~myplayer;
 	sem_post(mysemaphore);
+}
+
+char playerSpot(GameBoard* GoldBoard)
+{
+	char currentPlayer;
+	if(!(GoldBoard->players & G_PLR0))
+	{
+		currentPlayer=G_PLR0;
+		GoldBoard->players|=currentPlayer;
+	}
+	else if(!(GoldBoard->players & G_PLR1))
+	{
+		currentPlayer=G_PLR1;
+		GoldBoard->players|=currentPlayer;
+	}
+	else if(!(GoldBoard->players & G_PLR2))
+	{
+		currentPlayer=G_PLR2;
+		GoldBoard->players|=currentPlayer;
+	}
+	else if(!(GoldBoard->players & G_PLR3))
+	{
+		currentPlayer=G_PLR3;
+		GoldBoard->players|=currentPlayer;
+	}
+	else if(!(GoldBoard->players & G_PLR4))
+	{
+		currentPlayer=G_PLR4;
+		GoldBoard->players|=currentPlayer;
+	}
+	else
+	{
+		char F='F';           //return F indicating full status
+		currentPlayer=F;
+	}
+	return currentPlayer;
 }
