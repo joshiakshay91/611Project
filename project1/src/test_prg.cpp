@@ -1,7 +1,7 @@
 /*
 Author: Akshay Joshi
 Date: 20 Feb 2016
-*/
+ */
 #include "goldchase.h"
 #include "Map.h"
 #include <iostream>
@@ -10,8 +10,8 @@ Date: 20 Feb 2016
 #include <fstream>
 #include <random>
 #include <ctime>
-#include <fcntl.h>           /* For O_* constants */
-#include <sys/stat.h>        /* For mode constants */
+#include <fcntl.h>
+#include <sys/stat.h>
 #include <semaphore.h>
 #include <errno.h>
 #include <pthread.h>
@@ -19,7 +19,7 @@ Date: 20 Feb 2016
 #include <stdio.h>
 #include <sys/mman.h>
 #include <unistd.h>
-
+//the GameBoard struct
 struct GameBoard
 {
 	int rows;
@@ -28,9 +28,9 @@ struct GameBoard
 	unsigned char mapya[0];
 };
 
-bool lastManStatus(GameBoard*);
-void movement(GameBoard*,int,Map,char,sem_t*);
-char playerSpot(GameBoard*);
+bool lastManStatus(GameBoard*); //func to check last player ? y or n
+void movement(GameBoard*,int,Map,char,sem_t*); //for moving the players
+char playerSpot(GameBoard*); //to check which spot is available
 using namespace std;
 
 int main()
@@ -51,7 +51,6 @@ int main()
 	if(mysemaphore!=SEM_FAILED) //you are the first palyer
 	{
 		sem_wait(mysemaphore);
-
 		fd = shm_open("/APJMEMORY", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
 		if(fd==-1)
 		{
@@ -75,7 +74,8 @@ int main()
 			perror("FTRUNCATE FAILURE :");
 			exit(1);
 		}
-		GoldBoard= (GameBoard*) mmap(NULL, area+sizeof(GameBoard), PROT_READ|PROT_WRITE, MAP_SHARED,fd, 0);
+		GoldBoard= (GameBoard*) mmap(NULL, area+sizeof(GameBoard),
+				PROT_READ|PROT_WRITE, MAP_SHARED,fd, 0);
 		GoldBoard->rows=num_lines;
 		GoldBoard->coloumns=line_length;
 		byte=0;
@@ -84,8 +84,8 @@ int main()
 
 		std::uniform_int_distribution<int> rand(1,area); //here
 		engi.seed(aj());
-		const char* ptr=data;
-		//Convert the ASCII bytes into bit fields drawn from goldchase.h
+		const char* ptr=data;//Convert the ASCII bytes into bit
+		//fields drawn from goldchase.h
 		while(*ptr!='\0')
 		{
 			if(*ptr==' ')
@@ -160,10 +160,10 @@ int main()
 			}
 		}
 		GoldBoard->players &= ~myplayer;
-		lastPos=lastManStatus(GoldBoard);
+		lastPos=lastManStatus(GoldBoard); //player1 ends here
 	}// if ends on this line
 	else
-	{
+	{//all subsequent players
 		char currentPlayer;
 		mysemaphore=sem_open("/APJgoldchase",O_RDWR);
 		if(mysemaphore==SEM_FAILED)
@@ -179,13 +179,14 @@ int main()
 		read(fd,&player2col,sizeof(int));
 		std::uniform_int_distribution<int> rand(1,(player2rows*player2col)); //here
 		engi.seed(aj());
-		GameBoard* GoldBoard= (GameBoard*)mmap(NULL, player2rows*player2col+sizeof(GameBoard),
+		GameBoard* GoldBoard= (GameBoard*)mmap(NULL,
+				player2rows*player2col+sizeof(GameBoard),
 				PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
 		GoldBoard->rows=player2rows;
 		GoldBoard->coloumns=player2col;
 		currentPlayer=playerSpot(GoldBoard);
-		if(currentPlayer=='F')
-		{
+		if(currentPlayer=='F') //if F is returned it means 5 players
+		{ 										//are already playing
 			sem_post(mysemaphore);
 			cout<<"We are currently Full, Get out...!!!"<<endl;
 			exit(0);
@@ -223,13 +224,13 @@ int main()
 	}
 	if(lastPos)
 	{
-			sem_close(mysemaphore);
-			shm_unlink("/APJMEMORY");
-			sem_unlink("APJgoldchase");
+		sem_close(mysemaphore);
+		shm_unlink("/APJMEMORY");
+		sem_unlink("APJgoldchase");
 	}
 	return 0;
 }
-
+//checks the last man status in the game
 bool lastManStatus(GameBoard* GoldBoard)
 {
 
@@ -241,8 +242,9 @@ bool lastManStatus(GameBoard* GoldBoard)
 	}
 	return false;
 }
-
-void movement(GameBoard* GoldBoard,int playerPlacement,Map goldMine,char myplayer, sem_t* mysemaphore)
+//movement function for h,j,k,l for all players
+void movement(GameBoard* GoldBoard,int playerPlacement,Map goldMine,
+		char myplayer, sem_t* mysemaphore)
 {
 	bool GoldFlag=false;
 	int MapCol=GoldBoard->coloumns;
@@ -261,7 +263,8 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map goldMine,char myplaye
 					sem_wait(mysemaphore);
 					GoldBoard->mapya[playerPlacement]&=~myplayer;
 					playerPlacement--;
-					if((GoldBoard->mapya[playerPlacement]!=G_FOOL)&&((GoldBoard->mapya[playerPlacement]!=G_GOLD)))
+					if((GoldBoard->mapya[playerPlacement]!=G_FOOL)&&
+							((GoldBoard->mapya[playerPlacement]!=G_GOLD)))
 					{
 						GoldBoard->mapya[playerPlacement]|=myplayer;
 						sem_post(mysemaphore);
@@ -304,7 +307,8 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map goldMine,char myplaye
 					sem_wait(mysemaphore);
 					GoldBoard->mapya[playerPlacement]&=~myplayer;
 					playerPlacement++;
-					if((GoldBoard->mapya[playerPlacement]!=G_FOOL)&&((GoldBoard->mapya[playerPlacement]!=G_GOLD)))
+					if((GoldBoard->mapya[playerPlacement]!=G_FOOL)&&
+							((GoldBoard->mapya[playerPlacement]!=G_GOLD)))
 					{
 						GoldBoard->mapya[playerPlacement]|=myplayer;
 						sem_post(mysemaphore);
@@ -348,7 +352,8 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map goldMine,char myplaye
 					sem_wait(mysemaphore);
 					GoldBoard->mapya[playerPlacement]&=~myplayer;
 					playerPlacement-=MapCol;
-					if((GoldBoard->mapya[playerPlacement]!=G_FOOL)&&((GoldBoard->mapya[playerPlacement]!=G_GOLD)))
+					if((GoldBoard->mapya[playerPlacement]!=G_FOOL)&&
+							((GoldBoard->mapya[playerPlacement]!=G_GOLD)))
 					{
 						GoldBoard->mapya[playerPlacement]|=myplayer;
 						sem_post(mysemaphore);
@@ -390,7 +395,8 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map goldMine,char myplaye
 					sem_wait(mysemaphore);
 					GoldBoard->mapya[playerPlacement]&=~myplayer;
 					playerPlacement+=MapCol;
-					if((GoldBoard->mapya[playerPlacement]!=G_FOOL)&&((GoldBoard->mapya[playerPlacement]!=G_GOLD)))
+					if((GoldBoard->mapya[playerPlacement]!=G_FOOL)&&
+							((GoldBoard->mapya[playerPlacement]!=G_GOLD)))
 					{
 						GoldBoard->mapya[playerPlacement]|=myplayer;
 						sem_post(mysemaphore);
@@ -427,6 +433,8 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map goldMine,char myplaye
 	GoldBoard->mapya[playerPlacement]&=~myplayer;
 	sem_post(mysemaphore);
 }
+
+//checks for player spot available
 
 char playerSpot(GameBoard* GoldBoard)
 {
