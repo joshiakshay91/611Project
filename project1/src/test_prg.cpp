@@ -187,6 +187,8 @@ int main()
 			}
 		}
 		GoldBoard->players &= ~myplayer;
+		GoldBoard->array[0]=0;
+		SignalKiller((GoldBoard->array));
 		lastPos=lastManStatus(GoldBoard); //player1 ends here
 	}// if ends on this line
 	else
@@ -238,6 +240,7 @@ int main()
 			sem_post(mysemaphore);
 
 			pointer=&goldMine;
+			goldMine.drawMap();
 			movement(GoldBoard,player2Placement,goldMine,currentPlayer,mysemaphore);
 		}catch(std::runtime_error& e){
 			sem_post(mysemaphore);
@@ -250,7 +253,14 @@ int main()
 			}
 		}
 		GoldBoard->players &= ~currentPlayer;
-		//SignalKiller((GoldBoard->array));
+		for(int i=0;i<5;i++)
+		{
+			if((GoldBoard->array[i])==pid)
+			{
+				GoldBoard->array[i]=0;
+			}
+		}
+		SignalKiller((GoldBoard->array));
 		lastPos=lastManStatus(GoldBoard);
 	}
 	if(lastPos)
