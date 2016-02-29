@@ -19,22 +19,37 @@ Date: 20 Feb 2016
 #include <stdio.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include<signal.h>
+#include <sys/types.h>
 //the GameBoard struct
 struct GameBoard
 {
 	int rows;
 	int coloumns;
+	int array[5];
 	unsigned char players;
 	unsigned char mapya[0];
 };
 
+
+Map* pointer=NULL;
 bool lastManStatus(GameBoard*); //func to check last player ? y or n
 void movement(GameBoard*,int,Map,char,sem_t*); //for moving the players
-char playerSpot(GameBoard*); //to check which spot is available
+char playerSpot(GameBoard*, int); //to check which spot is available
 using namespace std;
+void SignalKiller(int PlayerArray[]);
+void handle_interrupt(int)
+{
+	//  std::cerr << "interrupt!\n";
+	if(pointer!=NULL)
+	{
+		pointer->drawMap();
+	}
+}
 
 int main()
 {
+	int pid;
 	int counter;
 	int fd;
 	char byte=0;
@@ -42,6 +57,16 @@ int main()
 	int line_length=0;
 	GameBoard* GoldBoard;
 	bool lastPos= false; //checking the last player status;
+////////////////////////////////Sigaction declaration chunk
+	struct sigaction ActionJackson;
+	ActionJackson.sa_handler=handle_interrupt;
+	sigemptyset(&ActionJackson.sa_mask);
+	ActionJackson.sa_flags=0;
+	ActionJackson.sa_restorer=NULL;
+
+	sigaction(SIGINT, &ActionJackson, NULL);
+	pid=getpid();
+
 	std::default_random_engine engi;
 	std::random_device aj;
 	string line,text;
@@ -78,6 +103,7 @@ int main()
 				PROT_READ|PROT_WRITE, MAP_SHARED,fd, 0);
 		GoldBoard->rows=num_lines;
 		GoldBoard->coloumns=line_length;
+		GoldBoard->array[0]=pid;
 		byte=0;
 		int index=0;
 
@@ -148,6 +174,7 @@ int main()
 				}
 			}
 			sem_post(mysemaphore);
+			pointer=&goldMine;
 			movement(GoldBoard,player1Placement,goldMine,myplayer,mysemaphore);
 		}catch(std::runtime_error& e){
 			sem_post(mysemaphore);
@@ -184,7 +211,8 @@ int main()
 				PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
 		GoldBoard->rows=player2rows;
 		GoldBoard->coloumns=player2col;
-		currentPlayer=playerSpot(GoldBoard);
+		currentPlayer=playerSpot(GoldBoard,pid);
+		//while deciding player spot pid is provided
 		if(currentPlayer=='F') //if F is returned it means 5 players
 		{ 										//are already playing
 			sem_post(mysemaphore);
@@ -204,10 +232,12 @@ int main()
 					byte|=currentPlayer;
 					GoldBoard->mapya[player2Placement]|=byte;
 					loopFlag=false;
-					goldMine.drawMap();
+					SignalKiller((GoldBoard->array));
 				}
 			}
 			sem_post(mysemaphore);
+
+			pointer=&goldMine;
 			movement(GoldBoard,player2Placement,goldMine,currentPlayer,mysemaphore);
 		}catch(std::runtime_error& e){
 			sem_post(mysemaphore);
@@ -220,6 +250,7 @@ int main()
 			}
 		}
 		GoldBoard->players &= ~currentPlayer;
+		//SignalKiller((GoldBoard->array));
 		lastPos=lastManStatus(GoldBoard);
 	}
 	if(lastPos)
@@ -287,9 +318,8 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map goldMine,
 							GoldFlag=true;
 						}
 					}
-					goldMine.drawMap();
+					SignalKiller((GoldBoard->array));
 				}
-
 			}
 			else if(GoldFlag)
 			{
@@ -331,7 +361,7 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map goldMine,
 							goldMine.postNotice("You got REAL GOLD make your escape!!!");
 						}
 					}
-					goldMine.drawMap();
+					SignalKiller((GoldBoard->array));
 				}
 
 			}
@@ -376,7 +406,7 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map goldMine,
 							goldMine.postNotice("You got REAL GOLD make your escape!!!");
 						}
 					}
-					goldMine.drawMap();
+					SignalKiller((GoldBoard->array));
 				}
 			}
 			else if(GoldFlag)
@@ -419,7 +449,7 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map goldMine,
 							goldMine.postNotice("You got REAL GOLD make your escape!!!");
 						}
 					}
-					goldMine.drawMap();
+					SignalKiller((GoldBoard->array));
 				}
 			}
 			else if(GoldFlag)
@@ -434,35 +464,44 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map goldMine,
 	sem_post(mysemaphore);
 }
 
-//checks for player spot available
 
-char playerSpot(GameBoard* GoldBoard)
+/*-------------------------------------------------------------------*/
+//checks for player spot available
+/*-------------------------------------------------------------------*/
+
+
+char playerSpot(GameBoard* GoldBoard, int pid)
 {
 	char currentPlayer;
 	if(!(GoldBoard->players & G_PLR0))
 	{
 		currentPlayer=G_PLR0;
 		GoldBoard->players|=currentPlayer;
+		GoldBoard->array[0]=pid;
 	}
 	else if(!(GoldBoard->players & G_PLR1))
 	{
 		currentPlayer=G_PLR1;
 		GoldBoard->players|=currentPlayer;
+		GoldBoard->array[1]=pid;
 	}
 	else if(!(GoldBoard->players & G_PLR2))
 	{
 		currentPlayer=G_PLR2;
 		GoldBoard->players|=currentPlayer;
+		GoldBoard->array[2]=pid;
 	}
 	else if(!(GoldBoard->players & G_PLR3))
 	{
 		currentPlayer=G_PLR3;
 		GoldBoard->players|=currentPlayer;
+		GoldBoard->array[3]=pid;
 	}
 	else if(!(GoldBoard->players & G_PLR4))
 	{
 		currentPlayer=G_PLR4;
 		GoldBoard->players|=currentPlayer;
+		GoldBoard->array[4]=pid;
 	}
 	else
 	{
@@ -471,3 +510,18 @@ char playerSpot(GameBoard* GoldBoard)
 	}
 	return currentPlayer;
 }
+
+
+/*--------------------------------------------------------------------*/
+/*Send refresh signal to all available players*/
+void SignalKiller(int PlayerArray[])
+{
+	for(int i=0;i<5;i++)
+	{
+		if(PlayerArray[i])
+		{
+			kill(PlayerArray[i],SIGINT);
+		}
+	}
+}
+/*-----------------------------------------------------------------*/
