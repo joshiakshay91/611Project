@@ -1,4 +1,4 @@
-test_prg: test_prg.cpp libmap.a functions.cpp goldchase.h
+test_prg: test_prg.cpp libmap.a goldchase.h
 	g++ test_prg.cpp -o test_prg -L. -lmap -lpanel -lpthread -lncurses -lm -lrt -std=c++11
 
 libmap.a: Screen.o Map.o
