@@ -34,7 +34,7 @@ struct GameBoard
 
 Map* pointer=NULL;
 bool lastManStatus(GameBoard*); //func to check last player ? y or n
-void movement(GameBoard*,int,Map,char,sem_t*); //for moving the players
+void movement(GameBoard*,int,Map&,char,sem_t*); //for moving the players
 char playerSpot(GameBoard*, int); //to check which spot is available
 using namespace std;
 void SignalKiller(int PlayerArray[]);
@@ -60,7 +60,7 @@ int main()
 	sigemptyset(&ActionJackson.sa_mask);
 	ActionJackson.sa_flags=0;
 	ActionJackson.sa_restorer=NULL;
-	sigaction(SIGINT, &ActionJackson, NULL);
+	sigaction(SIGUSR1, &ActionJackson, NULL);
 	pid=getpid();
 //////////////////////////////////////////
 	std::default_random_engine engi;
@@ -284,7 +284,7 @@ bool lastManStatus(GameBoard* GoldBoard)
 //movement function for h,j,k,l for all players
 /*-------------------------------------------------------------------*/
 
-void movement(GameBoard* GoldBoard,int playerPlacement,Map goldMine,
+void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 		char myplayer, sem_t* mysemaphore)
 {
 	bool GoldFlag=false,Flag=false;
@@ -458,7 +458,7 @@ void SignalKiller(int PlayerArray[])
 	{
 		if(PlayerArray[i])
 		{
-			kill(PlayerArray[i],SIGINT);
+			kill(PlayerArray[i],SIGUSR1);
 		}
 	}
 }
