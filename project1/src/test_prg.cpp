@@ -26,9 +26,15 @@ struct GameBoard
 {
 	int rows;
 	int coloumns;
+	unsigned char playerMask;
 	int array[5];
 	unsigned char mapya[0];
 };
+
+
+
+
+
 
 
 Map* pointer=NULL;
@@ -177,6 +183,7 @@ int main()
 		}catch(std::runtime_error& e){
 			sem_post(mysemaphore);
 			GoldBoard->array[0]=0;
+			GoldBoard->playerMask&=~myplayer;
 			if(lastManStatus(GoldBoard))
 			{
 				sem_close(mysemaphore);
@@ -185,6 +192,7 @@ int main()
 			}
 		}
 		GoldBoard->array[0]=0;
+		GoldBoard->playerMask&=~myplayer;
 		SignalKiller((GoldBoard->array));
 		lastPos=lastManStatus(GoldBoard); //player1 ends here
 	}// if ends on this line
@@ -246,6 +254,7 @@ int main()
 				if((GoldBoard->array[i])==pid)
 				{
 					GoldBoard->array[i]=0;
+					GoldBoard->playerMask&=~currentPlayer;
 				}
 			}
 			if(lastManStatus(GoldBoard))
@@ -260,6 +269,7 @@ int main()
 			if((GoldBoard->array[i])==pid)
 			{
 				GoldBoard->array[i]=0;
+				GoldBoard->playerMask&=~currentPlayer;
 			}
 		}
 		SignalKiller((GoldBoard->array));
@@ -421,26 +431,31 @@ char playerSpot(GameBoard* GoldBoard, int pid)
 	{
 		currentPlayer=G_PLR0;
 		GoldBoard->array[0]=pid;
+		GoldBoard->playerMask|=G_PLR0;
 	}
 	else if(GoldBoard->array[1]==0)
 	{
 		currentPlayer=G_PLR1;
 		GoldBoard->array[1]=pid;
+		GoldBoard->playerMask|=G_PLR1;
 	}
 	else if(GoldBoard->array[2]==0)
 	{
 		currentPlayer=G_PLR2;
 		GoldBoard->array[2]=pid;
+		GoldBoard->playerMask|=G_PLR2;
 	}
 	else if(GoldBoard->array[3]==0)
 	{
 		currentPlayer=G_PLR3;
 		GoldBoard->array[3]=pid;
+		GoldBoard->playerMask|=G_PLR3;
 	}
 	else if(GoldBoard->array[4]==0)
 	{
 		currentPlayer=G_PLR4;
 		GoldBoard->array[4]=pid;
+		GoldBoard->playerMask|=G_PLR4;
 	}
 	else
 	{
