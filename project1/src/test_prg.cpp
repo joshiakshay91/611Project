@@ -1,11 +1,12 @@
 /*
 Author: Akshay Joshi
-Date: 20 Feb 2016
+Date: 13 March 2016
  */
 #include "goldchase.h"
 #include "Map.h"
 #include <iostream>
 #include <cstdlib>
+
 #include <string>
 #include <fstream>
 #include <random>
@@ -21,45 +22,106 @@ Date: 20 Feb 2016
 #include <unistd.h>
 #include<signal.h>
 #include <sys/types.h>
+#include <mqueue.h>
+using namespace std;
 //the GameBoard struct
 struct GameBoard
 {
 	int rows;
 	int coloumns;
-	unsigned char playerMask;
 	int array[5];
 	unsigned char mapya[0];
 };
-
-
-
-
-
-
-
+int pid;
 Map* pointer=NULL;
+bool Somewhere=true;
+GameBoard* GoldBoard;
 bool lastManStatus(GameBoard*); //func to check last player ? y or n
 void movement(GameBoard*,int,Map&,char,sem_t*); //for moving the players
 char playerSpot(GameBoard*, int); //to check which spot is available
-using namespace std;
+void QueueSetup(int player);
+void QueueCleaner();
+void broadcaster(string msg,GameBoard* GoldBoard);
+sem_t *mysemaphore; //semaphore
 void SignalKiller(int PlayerArray[]);
 void handle_interrupt(int)
 {
+
 	if(pointer)
 	{
 		pointer->drawMap();
 	}
 }
+void other_interrupt(int number)
+{
+	Somewhere=false;
+}
+
+mqd_t readqueue_fd; //message queue file descriptor
+mqd_t writequeue_fd; //message queue file descriptor
+string mq_name="/APJqueue";
+void ReadMessage(int)
+{
+	struct sigevent mq_notification_event;
+	mq_notification_event.sigev_notify=SIGEV_SIGNAL;
+	mq_notification_event.sigev_signo=SIGUSR2;
+	mq_notify(readqueue_fd, &mq_notification_event);
+
+	int err;
+	char msg[121];
+	memset(msg, 0, 121);
+	while((err=mq_receive(readqueue_fd, msg, 120, NULL))!=-1)
+	{
+		pointer->postNotice(msg);
+		memset(msg, 0, 121);
+	}
+	if(errno!=EAGAIN)
+	{
+		perror("mq receive");
+		exit(1);
+	}
+}
+
+
+
+void writeMessage(string message,int player)
+{
+	string reciver;
+	if(player == G_PLR0)	reciver="/APJplayer0_mq";
+	else if(player == G_PLR1)	reciver="/APJplayer1_mq";
+	else if(player == G_PLR2)	reciver="/APJplayer2_mq";
+	else if(player == G_PLR3)	reciver="/APJplayer3_mq";
+	else if(player == G_PLR4)	reciver="/APJplayer4_mq";
+	const char *ptr=message.c_str();
+	if((writequeue_fd=mq_open(reciver.c_str(), O_WRONLY|O_NONBLOCK))==-1)
+	{
+		perror("msgq open error");
+		exit(1);
+	}
+	char message_text[121];
+	memset(message_text, 0, 121);
+	strncpy(message_text, ptr, 120);
+	if(mq_send(writequeue_fd, message_text, strlen(message_text), 0)==-1)
+	{
+		perror("msgq send error");
+		exit(1);
+	}
+	mq_close(writequeue_fd);
+}
+
+string senderI;
 
 int main()
 {
-	int pid,counter,fd;
+	cout<<"What is you name?"<<endl;
+	getline(cin,senderI);
+	int counter,fd;
 	char byte=0;
 	int num_lines=0;
 	int line_length=0;
-	GameBoard* GoldBoard;
+
 	bool lastPos= false; //checking the last player status;
-////////////////////////////////Sigaction declaration chunk
+	////////////////////////////////Sigaction declaration chunk
 	struct sigaction ActionJackson;
 	ActionJackson.sa_handler=handle_interrupt;
 	sigemptyset(&ActionJackson.sa_mask);
@@ -67,11 +129,20 @@ int main()
 	ActionJackson.sa_restorer=NULL;
 	sigaction(SIGUSR1, &ActionJackson, NULL);
 	pid=getpid();
-//////////////////////////////////////////
+	//////////////////////////////////////////
+	struct sigaction OtherAction;
+	OtherAction.sa_handler=other_interrupt;
+	sigemptyset(&OtherAction.sa_mask);
+	OtherAction.sa_flags=0;
+	OtherAction.sa_restorer=NULL;
+	sigaction(SIGINT, &OtherAction, NULL);
+	sigaction(SIGHUP, &OtherAction, NULL);
+	sigaction(SIGTERM, &OtherAction, NULL);
+	/////////////////////////////////////////
 	std::default_random_engine engi;
 	std::random_device aj;//random and
 	string line,text;
-	sem_t *mysemaphore; //semaphore
+//	sem_t *mysemaphore; //semaphore
 	mysemaphore= sem_open("/APJgoldchase", O_CREAT|O_EXCL,
 			S_IROTH| S_IWOTH| S_IRGRP| S_IWGRP| S_IRUSR| S_IWUSR,1);
 	if(mysemaphore!=SEM_FAILED) //you are the first palyer
@@ -104,7 +175,9 @@ int main()
 				PROT_READ|PROT_WRITE, MAP_SHARED,fd, 0);
 		GoldBoard->rows=num_lines;
 		GoldBoard->coloumns=line_length;
+		unsigned char myplayer=G_PLR0;
 		GoldBoard->array[0]=pid;
+		QueueSetup(myplayer);
 		for(int itr=1;itr<5;itr++)
 		{
 			GoldBoard->array[itr]=0;
@@ -160,7 +233,6 @@ int main()
 				counter--;
 			}
 		}
-		char myplayer=G_PLR0;
 		try{
 			Map goldMine((GoldBoard->mapya),num_lines,line_length);
 			bool loopFlag=true;
@@ -183,7 +255,6 @@ int main()
 		}catch(std::runtime_error& e){
 			sem_post(mysemaphore);
 			GoldBoard->array[0]=0;
-			GoldBoard->playerMask&=~myplayer;
 			if(lastManStatus(GoldBoard))
 			{
 				sem_close(mysemaphore);
@@ -192,13 +263,12 @@ int main()
 			}
 		}
 		GoldBoard->array[0]=0;
-		GoldBoard->playerMask&=~myplayer;
 		SignalKiller((GoldBoard->array));
 		lastPos=lastManStatus(GoldBoard); //player1 ends here
 	}// if ends on this line
 	else
 	{//all subsequent players
-		char currentPlayer;
+		unsigned char currentPlayer;
 		mysemaphore=sem_open("/APJgoldchase",O_RDWR);
 		if(mysemaphore==SEM_FAILED)
 		{
@@ -227,6 +297,7 @@ int main()
 			exit(0);
 		}
 		try{
+			QueueSetup(currentPlayer);
 			Map goldMine((GoldBoard->mapya),player2rows,player2col);
 			bool loopFlag=true;
 			int player2Placement;
@@ -254,7 +325,6 @@ int main()
 				if((GoldBoard->array[i])==pid)
 				{
 					GoldBoard->array[i]=0;
-					GoldBoard->playerMask&=~currentPlayer;
 				}
 			}
 			if(lastManStatus(GoldBoard))
@@ -269,18 +339,19 @@ int main()
 			if((GoldBoard->array[i])==pid)
 			{
 				GoldBoard->array[i]=0;
-				GoldBoard->playerMask&=~currentPlayer;
 			}
 		}
 		SignalKiller((GoldBoard->array));
 		lastPos=lastManStatus(GoldBoard);
 	}
+	QueueCleaner();
 	if(lastPos)
 	{
 		sem_close(mysemaphore);
 		shm_unlink("/APJMEMORY");
 		sem_unlink("APJgoldchase");
 	}
+
 	return 0;
 }
 //checks the last man status in the game
@@ -307,9 +378,12 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 	int MapCol=GoldBoard->coloumns;
 	int MapRow=GoldBoard->rows;
 	int OldLocation;
+	int ToPerson;
+	int sender;
+	string msg;
 	char button='m'; //just a garbage
 	goldMine.postNotice("Welcome To The Gold Chase Game This Box is a notice Box");
-	while(button!='Q')
+	while(button!='Q' &&(Somewhere))
 	{
 		button=goldMine.getKey();
 		if(button=='h')
@@ -346,7 +420,7 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 				goldMine.postNotice("You Won");
 			}
 		}
-		if(button=='k')
+		else if(button=='k')
 		{
 			if((playerPlacement-MapCol)>=0)
 			{
@@ -380,39 +454,95 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 				goldMine.postNotice("You Won");
 			}
 		}
+		else if(button=='m')
+		{
+			ToPerson=0;
+			if(GoldBoard->array[0]!=0)	ToPerson|=G_PLR0;
+			if(GoldBoard->array[1]!=0)	ToPerson|=G_PLR1;
+			if(GoldBoard->array[2]!=0)	ToPerson|=G_PLR2;
+			if(GoldBoard->array[3]!=0)	ToPerson|=G_PLR3;
+			if(GoldBoard->array[4]!=0)	ToPerson|=G_PLR4;
+			ToPerson&=~myplayer; //i dont want to send myself anything
+			int toAddress=goldMine.getPlayer(ToPerson);
+			cerr<<"Address"<<toAddress<<endl;
+			//sender=myplayer;
+			if(toAddress!=0)
+			{
+				msg="Player->"+senderI+" Says:";
+				msg=msg+goldMine.getMessage();
+				writeMessage(msg,toAddress);
+			}
+		}
+		else if(button=='b')
+		{
+			int counter=0;
+			for(int i=0;i<5;i++)
+			{
+				if(GoldBoard->array[i]!=0)
+				{
+					++counter;
+				}
+			}
+			if(counter>1)
+			{
+				msg="Player->"+senderI+" Says:";
+				msg=msg+goldMine.getMessage();
+				broadcaster(msg,GoldBoard);
+			}
+			else
+			{
+				goldMine.postNotice("Dude you are alone in this game");
+			}
+		}
 		if(Flag)
 		{
-		  sem_wait(mysemaphore);
-		  GoldBoard->mapya[OldLocation]&=~myplayer;
-		  if((GoldBoard->mapya[playerPlacement]!=G_FOOL)&&
-		      ((GoldBoard->mapya[playerPlacement]!=G_GOLD)))
-		  {
-		    GoldBoard->mapya[playerPlacement]|=myplayer;
-		    sem_post(mysemaphore);
-		  }
-		  else
-		  {
-		    if((GoldBoard->mapya[playerPlacement]==G_FOOL))
-		    {
-		      GoldBoard->mapya[playerPlacement]&=~G_FOOL;
-		      GoldBoard->mapya[playerPlacement]=myplayer;
-		      sem_post(mysemaphore);
-		      goldMine.postNotice("Tricked You!!! 'FOOLS GOLD'");
-		    }
-		    else if((GoldBoard->mapya[playerPlacement]==G_GOLD))
-		    {
-		      GoldBoard->mapya[playerPlacement]&=~G_GOLD;
-		      GoldBoard->mapya[playerPlacement]=myplayer;
-		      sem_post(mysemaphore);
-		      GoldFlag=true;
-		      goldMine.postNotice("You got REAL GOLD make your escape!!!");
-		    }
-		  }
-		  Flag=false;
-		  SignalKiller((GoldBoard->array));
+			sem_wait(mysemaphore);
+			GoldBoard->mapya[OldLocation]&=~myplayer;
+			if((GoldBoard->mapya[playerPlacement]!=G_FOOL)&&
+					((GoldBoard->mapya[playerPlacement]!=G_GOLD)))
+			{
+				GoldBoard->mapya[playerPlacement]|=myplayer;
+				sem_post(mysemaphore);
+			}
+			else
+			{
+				if((GoldBoard->mapya[playerPlacement]==G_FOOL))
+				{
+					GoldBoard->mapya[playerPlacement]&=~G_FOOL;
+					GoldBoard->mapya[playerPlacement]=myplayer;
+					sem_post(mysemaphore);
+					goldMine.postNotice("Tricked You!!! 'FOOLS GOLD'");
+				}
+				else if((GoldBoard->mapya[playerPlacement]==G_GOLD))
+				{
+					GoldBoard->mapya[playerPlacement]&=~G_GOLD;
+					GoldBoard->mapya[playerPlacement]=myplayer;
+					sem_post(mysemaphore);
+					GoldFlag=true;
+					goldMine.postNotice("You got REAL GOLD make your escape!!!");
+				}
+			}
+			Flag=false;
+			SignalKiller((GoldBoard->array));
 		}
 
 	}//while ends here
+	if(GoldFlag)
+	{
+		int counter=0;
+		for(int i=0;i<5;i++)
+		{
+			if(GoldBoard->array[i]!=0)
+			{
+				++counter;
+			}
+		}
+		if(counter>1)
+		{
+			msg="Player->"+senderI+" Is winner and he has escaped!!!";
+			broadcaster(msg,GoldBoard);
+		}
+	}
 	sem_wait(mysemaphore);
 	GoldBoard->mapya[playerPlacement]&=~myplayer;
 	sem_post(mysemaphore);
@@ -431,31 +561,26 @@ char playerSpot(GameBoard* GoldBoard, int pid)
 	{
 		currentPlayer=G_PLR0;
 		GoldBoard->array[0]=pid;
-		GoldBoard->playerMask|=G_PLR0;
 	}
 	else if(GoldBoard->array[1]==0)
 	{
 		currentPlayer=G_PLR1;
 		GoldBoard->array[1]=pid;
-		GoldBoard->playerMask|=G_PLR1;
 	}
 	else if(GoldBoard->array[2]==0)
 	{
 		currentPlayer=G_PLR2;
 		GoldBoard->array[2]=pid;
-		GoldBoard->playerMask|=G_PLR2;
 	}
 	else if(GoldBoard->array[3]==0)
 	{
 		currentPlayer=G_PLR3;
 		GoldBoard->array[3]=pid;
-		GoldBoard->playerMask|=G_PLR3;
 	}
 	else if(GoldBoard->array[4]==0)
 	{
 		currentPlayer=G_PLR4;
 		GoldBoard->array[4]=pid;
-		GoldBoard->playerMask|=G_PLR4;
 	}
 	else
 	{
@@ -479,3 +604,63 @@ void SignalKiller(int PlayerArray[])
 	}
 }
 /*-----------------------------------------------------------------*/
+
+
+void QueueSetup(int player){
+
+	if(player == G_PLR0)	mq_name="/APJplayer0_mq";
+	else if(player == G_PLR1)	mq_name="/APJplayer1_mq";
+	else if(player == G_PLR2)	mq_name="/APJplayer2_mq";
+	else if(player == G_PLR3)	mq_name="/APJplayer3_mq";
+	else if(player == G_PLR4)	mq_name="/APJplayer4_mq";
+	struct sigaction action_to_take;
+	action_to_take.sa_handler=ReadMessage;
+	sigemptyset(&action_to_take.sa_mask);
+	action_to_take.sa_flags=0;
+	sigaction(SIGUSR2, &action_to_take, NULL);
+	struct mq_attr mq_attributes;
+	mq_attributes.mq_flags=0;
+	mq_attributes.mq_maxmsg=10;
+	mq_attributes.mq_msgsize=120;
+	if((readqueue_fd=mq_open(mq_name.c_str(), O_RDONLY|O_CREAT|O_EXCL|O_NONBLOCK,
+					S_IRUSR|S_IWUSR, &mq_attributes))==-1)
+	{
+		perror("mq_open");
+		exit(1);
+	}
+	struct sigevent mq_notification_event;
+	mq_notification_event.sigev_notify=SIGEV_SIGNAL;
+	mq_notification_event.sigev_signo=SIGUSR2;
+	mq_notify(readqueue_fd, &mq_notification_event);
+}
+
+
+////////////////
+void QueueCleaner()
+{
+	mq_close(readqueue_fd);
+	if(mq_unlink(mq_name.c_str())==-1)
+	{
+		if(errno==EACCES)	perror("Access eror");
+		else if(errno==ENAMETOOLONG)	perror("Name to long");
+		else if(ENOENT==errno)	perror("Queue with no name");
+		exit(1);
+	}
+}
+/////////////////////
+
+void broadcaster(string msg,GameBoard* GoldBoard)
+{
+	for (int i = 0; i < 5; i++)
+	{
+		if((GoldBoard->array[i]!=pid)&&(GoldBoard->array[i]!=0))
+		{
+			if(i==0)		writeMessage(msg,G_PLR0);
+			if(i==1)		writeMessage(msg,G_PLR1);
+			if(i==2)		writeMessage(msg,G_PLR2);
+			if(i==3)		writeMessage(msg,G_PLR3);
+			if(i==4)		writeMessage(msg,G_PLR4);
+		}
+	}
+}
+////////////////////////////////
