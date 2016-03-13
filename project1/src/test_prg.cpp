@@ -1,12 +1,11 @@
 /*
 Author: Akshay Joshi
-Date: 13 March 2016
+Date: 20 Feb 2016
  */
 #include "goldchase.h"
 #include "Map.h"
 #include <iostream>
 #include <cstdlib>
-
 #include <string>
 #include <fstream>
 #include <random>
@@ -23,7 +22,6 @@ Date: 13 March 2016
 #include<signal.h>
 #include <sys/types.h>
 #include <mqueue.h>
-using namespace std;
 //the GameBoard struct
 struct GameBoard
 {
@@ -33,16 +31,12 @@ struct GameBoard
 	unsigned char mapya[0];
 };
 int pid;
-Map* pointer=NULL;
 bool Somewhere=true;
-GameBoard* GoldBoard;
+Map* pointer=NULL;
 bool lastManStatus(GameBoard*); //func to check last player ? y or n
 void movement(GameBoard*,int,Map&,char,sem_t*); //for moving the players
 char playerSpot(GameBoard*, int); //to check which spot is available
-void QueueSetup(int player);
-void QueueCleaner();
-void broadcaster(string msg,GameBoard* GoldBoard);
-sem_t *mysemaphore; //semaphore
+using namespace std;
 void SignalKiller(int PlayerArray[]);
 void handle_interrupt(int)
 {
@@ -69,11 +63,11 @@ void ReadMessage(int)
 
 	int err;
 	char msg[121];
-	memset(msg, 0, 121);
+	memset(msg, 0, 121);//set all characters to '\0'
 	while((err=mq_receive(readqueue_fd, msg, 120, NULL))!=-1)
 	{
 		pointer->postNotice(msg);
-		memset(msg, 0, 121);
+		memset(msg, 0, 121);//set all characters to '\0'
 	}
 	if(errno!=EAGAIN)
 	{
@@ -109,6 +103,9 @@ void writeMessage(string message,int player)
 	mq_close(writequeue_fd);
 }
 
+void QueueSetup(int player);
+void QueueCleaner();
+void broadcaster(string msg,GameBoard* GoldBoard);
 string senderI;
 
 int main()
@@ -119,7 +116,7 @@ int main()
 	char byte=0;
 	int num_lines=0;
 	int line_length=0;
-
+	GameBoard* GoldBoard;
 	bool lastPos= false; //checking the last player status;
 	////////////////////////////////Sigaction declaration chunk
 	struct sigaction ActionJackson;
@@ -142,7 +139,7 @@ int main()
 	std::default_random_engine engi;
 	std::random_device aj;//random and
 	string line,text;
-//	sem_t *mysemaphore; //semaphore
+	sem_t *mysemaphore; //semaphore
 	mysemaphore= sem_open("/APJgoldchase", O_CREAT|O_EXCL,
 			S_IROTH| S_IWOTH| S_IRGRP| S_IWGRP| S_IRUSR| S_IWUSR,1);
 	if(mysemaphore!=SEM_FAILED) //you are the first palyer
@@ -383,7 +380,7 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 	string msg;
 	char button='m'; //just a garbage
 	goldMine.postNotice("Welcome To The Gold Chase Game This Box is a notice Box");
-	while(button!='Q' &&(Somewhere))
+	while(button!='Q'&& (Somewhere))
 	{
 		button=goldMine.getKey();
 		if(button=='h')
