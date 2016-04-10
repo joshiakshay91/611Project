@@ -1,6 +1,6 @@
 /*
 Author: Akshay Joshi
-Date: 20 Feb 2016
+Date: 13 March 2016
  */
 #include "goldchase.h"
 #include "Map.h"
@@ -22,6 +22,7 @@ Date: 20 Feb 2016
 #include<signal.h>
 #include <sys/types.h>
 #include <mqueue.h>
+using namespace std;
 //the GameBoard struct
 struct GameBoard
 {
@@ -31,28 +32,36 @@ struct GameBoard
 	unsigned char mapya[0];
 };
 int pid;
-bool Somewhere=true;
-Map* pointer=NULL;
+bool Somewhere=true;//for handling interrupt
+bool ColdFlag=true;//for handling interrupt when getting input
+Map* pointer=NULL;//Global Map Pointer
 bool lastManStatus(GameBoard*); //func to check last player ? y or n
 void movement(GameBoard*,int,Map&,char,sem_t*); //for moving the players
 char playerSpot(GameBoard*, int); //to check which spot is available
-using namespace std;
+void QueueSetup(int player);//function to setup mqueue
+void QueueCleaner();
+void broadcaster(string msg,GameBoard* GoldBoard);//broadcasts message
+string senderI;//username
 void SignalKiller(int PlayerArray[]);
 void handle_interrupt(int)
 {
-
 	if(pointer)
 	{
 		pointer->drawMap();
 	}
 }
-void other_interrupt(int number)
+void other_interrupt(int)
 {
+	if(ColdFlag)
+	{
+		cout<<"Sorry, I have been signaled that,It is too cold!!!"<<endl;
+		exit(0);
+	}
 	Somewhere=false;
 }
 
-mqd_t readqueue_fd; //message queue file descriptor
-mqd_t writequeue_fd; //message queue file descriptor
+mqd_t readqueue_fd;//file descriptor
+mqd_t writequeue_fd;//file descriptor
 string mq_name="/APJqueue";
 void ReadMessage(int)
 {
@@ -60,23 +69,28 @@ void ReadMessage(int)
 	mq_notification_event.sigev_notify=SIGEV_SIGNAL;
 	mq_notification_event.sigev_signo=SIGUSR2;
 	mq_notify(readqueue_fd, &mq_notification_event);
-
 	int err;
 	char msg[121];
-	memset(msg, 0, 121);//set all characters to '\0'
+	memset(msg, 0, 121);
 	while((err=mq_receive(readqueue_fd, msg, 120, NULL))!=-1)
 	{
 		pointer->postNotice(msg);
-		memset(msg, 0, 121);//set all characters to '\0'
+		memset(msg, 0, 121);
 	}
 	if(errno!=EAGAIN)
 	{
+		if(errno==EBADF)
+		{
+			perror("bad file descriptor");
+		}
+		if(errno==EINTR)
+		{
+			perror("Signal interference");
+		}
 		perror("mq receive");
 		exit(1);
 	}
 }
-
-
 
 void writeMessage(string message,int player)
 {
@@ -103,15 +117,21 @@ void writeMessage(string message,int player)
 	mq_close(writequeue_fd);
 }
 
-void QueueSetup(int player);
-void QueueCleaner();
-void broadcaster(string msg,GameBoard* GoldBoard);
-string senderI;
-
 int main()
 {
+	//////////////////////////////////////////
+	struct sigaction OtherAction;//handle the signals
+	OtherAction.sa_handler=other_interrupt;
+	sigemptyset(&OtherAction.sa_mask);
+	OtherAction.sa_flags=0;
+	OtherAction.sa_restorer=NULL;
+	sigaction(SIGINT, &OtherAction, NULL);
+	sigaction(SIGHUP, &OtherAction, NULL);
+	sigaction(SIGTERM, &OtherAction, NULL);
+	/////////////////////////////////////////
 	cout<<"What is you name?"<<endl;
 	getline(cin,senderI);
+	ColdFlag=false;// if sig int,hup,or termed coldly while getting i/p
 	int counter,fd;
 	char byte=0;
 	int num_lines=0;
@@ -127,15 +147,6 @@ int main()
 	sigaction(SIGUSR1, &ActionJackson, NULL);
 	pid=getpid();
 	//////////////////////////////////////////
-	struct sigaction OtherAction;
-	OtherAction.sa_handler=other_interrupt;
-	sigemptyset(&OtherAction.sa_mask);
-	OtherAction.sa_flags=0;
-	OtherAction.sa_restorer=NULL;
-	sigaction(SIGINT, &OtherAction, NULL);
-	sigaction(SIGHUP, &OtherAction, NULL);
-	sigaction(SIGTERM, &OtherAction, NULL);
-	/////////////////////////////////////////
 	std::default_random_engine engi;
 	std::random_device aj;//random and
 	string line,text;
@@ -151,10 +162,10 @@ int main()
 			perror("Shared memory creation failed");
 			exit(1);
 		}
-
+//loading the map
 		ifstream in("mymap.txt");
 		getline(in,line);
-		counter=std::atoi(line.c_str());
+		counter=std::stoi(line.c_str());//convert using stoi ..inclass
 		while(getline(in, line))
 		{
 			text += line;
@@ -376,7 +387,6 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 	int MapRow=GoldBoard->rows;
 	int OldLocation;
 	int ToPerson;
-	int sender;
 	string msg;
 	char button='m'; //just a garbage
 	goldMine.postNotice("Welcome To The Gold Chase Game This Box is a notice Box");
@@ -461,11 +471,9 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 			if(GoldBoard->array[4]!=0)	ToPerson|=G_PLR4;
 			ToPerson&=~myplayer; //i dont want to send myself anything
 			int toAddress=goldMine.getPlayer(ToPerson);
-			cerr<<"Address"<<toAddress<<endl;
-			//sender=myplayer;
 			if(toAddress!=0)
 			{
-				msg="Player->"+senderI+" Says:";
+				msg="Player->"+senderI+" says:";
 				msg=msg+goldMine.getMessage();
 				writeMessage(msg,toAddress);
 			}
@@ -482,13 +490,13 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 			}
 			if(counter>1)
 			{
-				msg="Player->"+senderI+" Says:";
+				msg="Player->"+senderI+" says:";
 				msg=msg+goldMine.getMessage();
 				broadcaster(msg,GoldBoard);
 			}
 			else
 			{
-				goldMine.postNotice("Dude you are alone in this game");
+				goldMine.postNotice("Dude you are alone in this game.");
 			}
 		}
 		if(Flag)
@@ -522,7 +530,6 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 			Flag=false;
 			SignalKiller((GoldBoard->array));
 		}
-
 	}//while ends here
 	if(GoldFlag)
 	{
@@ -542,6 +549,7 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 	}
 	sem_wait(mysemaphore);
 	GoldBoard->mapya[playerPlacement]&=~myplayer;
+	SignalKiller((GoldBoard->array));
 	sem_post(mysemaphore);
 }
 
@@ -602,9 +610,10 @@ void SignalKiller(int PlayerArray[])
 }
 /*-----------------------------------------------------------------*/
 
-
-void QueueSetup(int player){
-
+/*Setting up the queue with sig action*/
+//given part
+void QueueSetup(int player)
+{
 	if(player == G_PLR0)	mq_name="/APJplayer0_mq";
 	else if(player == G_PLR1)	mq_name="/APJplayer1_mq";
 	else if(player == G_PLR2)	mq_name="/APJplayer2_mq";
@@ -631,8 +640,9 @@ void QueueSetup(int player){
 	mq_notify(readqueue_fd, &mq_notification_event);
 }
 
-
-////////////////
+//magic done
+////////////////////////////////
+/*We are responsible for destroying our own queue*/
 void QueueCleaner()
 {
 	mq_close(readqueue_fd);
@@ -644,7 +654,8 @@ void QueueCleaner()
 		exit(1);
 	}
 }
-/////////////////////
+////////////////////////////////
+/*Function to broadcast message*/
 
 void broadcaster(string msg,GameBoard* GoldBoard)
 {
