@@ -222,25 +222,6 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
 	//char message[1000];
 	while(1){
 
-		int readByteN;
-		int CondiX;
-		short positionC;
-		unsigned char changed;
-		//while(1){
-			readByteN=READ(new_sockfd,&CondiX,sizeof(int));
-			if(CondiX==0)
-			{
-				READ(new_sockfd,&positionC,sizeof(short));
-				READ(new_sockfd,&changed,sizeof(char));
-				orig[positionC]=changed;
-				myLocalCopy[positionC]=changed;
-				for(int i=0;i<5;i++)
-				{
-					if(GoldBoard->array[i]!=0)	kill(GoldBoard->array[i],SIGUSR1);
-				}
-			}
-
-
 	//read & write to the socket
 //	char buffer[100];
 //	memset(buffer,0,100);
@@ -388,7 +369,6 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 		GoldBoard->rows=playerRows;
 		GoldBoard->coloumns=playerCol;
 		GoldBoard->array[0]=1;
-		GoldBoard->DaemonID=getpid();
 		for(int i=0;i<mapSize;i++)
 		{
 			READ(sockfd,&tempData,1);
@@ -396,18 +376,6 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 			clientLocalCopy[i]=tempData;
 		}
 		sem_post(mysemaphore);
-
-		/////
-		struct sigaction OtherAction;//handle the signals
-		OtherAction.sa_handler=Sother_interrupt;
-		sigemptyset(&OtherAction.sa_mask);
-		OtherAction.sa_flags=0;
-		OtherAction.sa_restorer=NULL;
-		sigaction(SIGINT, &OtherAction, NULL);// sig usr1 - map refresh
-		sigaction(SIGHUP, &OtherAction, NULL);// mqueue
-		sigaction(SIGTERM, &OtherAction, NULL);
-	  sigaction(SIGUSR1, &OtherAction, NULL);
-		//////
 //	}
 	int readByteN;
 	int CondiX;
