@@ -284,9 +284,11 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
 
 void ClientDaemon_function()
 {
-	int pipefd[2];
-	pipe(pipefd);
-
+	char* pipefifo="/dev/tmp/waiter"
+	int pipefd;
+	//pipe(pipefd);
+	mkfifo(pipefifo, 0666);
+	  pipefd = open(pipefifo, O_WRONLY);
   int rPid=fork();
   if(rPid<0)
   {
@@ -295,16 +297,16 @@ void ClientDaemon_function()
   if(rPid>0)
   {
 
-			close(pipefd[1]); //close write, parent only needs read
+//			close(pipefd[1]); //close write, parent only needs read
 	    int val=99;
-		//	while(1){
-	    read(pipefd[0], &val, sizeof(val));
+			while(1){
+	    read(pipefd, &val, sizeof(val));
 	    if(val==0)
-	//	}
+		}
 		{
   	wait(NULL);
   	return;	//I'm the parent, leave the function
-	}else{ return 0;}
+	}else{ exit (0);}
   }
   if(fork()>0)
   {
@@ -390,8 +392,8 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 		}
 		sem_post(mysemaphore);
 //	}
-	int val=0;
-	write(pipefd[1], &val, sizeof(val));
+	int vala=0;
+	write(pipefd, &vala, sizeof(vala));
 	int readByteN;
 	int CondiX;
 	short positionC;
