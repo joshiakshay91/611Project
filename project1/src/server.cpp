@@ -284,7 +284,7 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
 
 void ClientDaemon_function()
 {
-	char* pipefifo="/dev/tmp/waiter"
+	char* pipefifo="/dev/tmp/waiter";
 	int pipefd;
 	//pipe(pipefd);
 	mkfifo(pipefifo, 0666);
@@ -301,12 +301,13 @@ void ClientDaemon_function()
 	    int val=99;
 			while(1){
 	    read(pipefd, &val, sizeof(val));
-	    if(val==0)
+	    if(val==0);
+			{
+	  	wait(NULL);
+	  	return;	//I'm the parent, leave the function
 		}
-		{
-  	wait(NULL);
-  	return;	//I'm the parent, leave the function
-	}else{ exit (0);}
+		}
+
   }
   if(fork()>0)
   {
