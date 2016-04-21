@@ -29,13 +29,13 @@ using namespace std;
 
 //the GameBoard struct
 /*struct GameBoard
-{
-	int rows;
-	int coloumns;
-	int array[5];
-	int DaemonID;
-	unsigned char mapya[0];
-};*/
+  {
+  int rows;
+  int coloumns;
+  int array[5];
+  int DaemonID;
+  unsigned char mapya[0];
+  };*/
 int pid;
 bool Somewhere=true;//for handling interrupt
 bool ColdFlag=true;//for handling interrupt when getting input
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
 	{}
 	if(Turn==999){
 		ClientDaemon_function();
-//		sleep(10);
+		//		sleep(10);
 	}
 	//////////////////////////////////////////
 	struct sigaction OtherAction;//handle the signals
@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
 	std::default_random_engine engi;
 	std::random_device aj;//random and
 	string line,text;
-//	sem_t *mysemaphore; //semaphore
+	//	sem_t *mysemaphore; //semaphore
 	mysemaphore= sem_open("/APJgoldchase", O_CREAT|O_EXCL,
 			S_IROTH| S_IWOTH| S_IRGRP| S_IWGRP| S_IRUSR| S_IWUSR,1);
 	if(mysemaphore!=SEM_FAILED) //you are the first palyer
@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
 			perror("Shared memory creation failed");
 			exit(1);
 		}
-//loading the map
+		//loading the map
 		ifstream in("mymap.txt");
 		getline(in,line);
 		counter=std::stoi(line.c_str());//convert using stoi ..inclass
@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
 		unsigned char myplayer=G_PLR0;
 		GoldBoard->array[0]=pid;
 		GoldBoard->DaemonID=0;
-//		GOldBoard->DaemonID=pid;
+		//		GOldBoard->DaemonID=pid;
 		QueueSetup(myplayer);
 		for(int itr=1;itr<5;itr++)
 		{
@@ -286,9 +286,9 @@ int main(int argc, char *argv[])
 					kill(GoldBoard->DaemonID,SIGHUP);
 				}
 				else{
-				sem_close(mysemaphore);
-				shm_unlink("/APJMEMORY");
-				sem_unlink("APJgoldchase");}
+					sem_close(mysemaphore);
+					shm_unlink("/APJMEMORY");
+					sem_unlink("APJgoldchase");}
 			}
 		}
 		GoldBoard->array[0]=0;
@@ -363,9 +363,9 @@ int main(int argc, char *argv[])
 					kill(GoldBoard->DaemonID,SIGHUP);
 				}
 				else{
-				sem_close(mysemaphore);
-				shm_unlink("/APJMEMORY");
-				sem_unlink("APJgoldchase");}
+					sem_close(mysemaphore);
+					shm_unlink("/APJMEMORY");
+					sem_unlink("APJgoldchase");}
 			}
 		}
 		for(int i=0;i<5;i++)
@@ -386,9 +386,9 @@ int main(int argc, char *argv[])
 			kill(GoldBoard->DaemonID,SIGHUP);
 		}
 		else{
-		sem_close(mysemaphore);
-		shm_unlink("/APJMEMORY");
-		sem_unlink("APJgoldchase");}
+			sem_close(mysemaphore);
+			shm_unlink("/APJMEMORY");
+			sem_unlink("APJgoldchase");}
 	}
 
 	return 0;
@@ -423,7 +423,7 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 	goldMine.postNotice("Welcome To The Gold Chase Game This Box is a notice Box");
 	while(button!='Q'&& (Somewhere))
 	{
-//		if((GoldBoard->DaemonID)!=0)	cerr<<"Value of DaemonID: "<<GoldBoard->DaemonID<<endl;
+		//		if((GoldBoard->DaemonID)!=0)	cerr<<"Value of DaemonID: "<<GoldBoard->DaemonID<<endl;
 		button=goldMine.getKey();
 		if(button=='h')
 		{
@@ -594,7 +594,7 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 char playerSpot(GameBoard* GoldBoard, int pid)
 {
 	char currentPlayer;
-//	GoldBoard->DaemonID=pid;
+	//	GoldBoard->DaemonID=pid;
 	if(GoldBoard->array[0]==0)
 	{
 		currentPlayer=G_PLR0;
