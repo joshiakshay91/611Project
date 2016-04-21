@@ -88,6 +88,7 @@ void Sother_interrupt(int SigNo)//handling interr
 void ServerDaemon_function()
 {
 // printf("Daemon Started");
+
 int rPid=fork();
 if(rPid<0)
 {
@@ -283,6 +284,9 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
 
 void ClientDaemon_function()
 {
+	int pipefd[2];
+	pipe(pipefd);
+
   int rPid=fork();
   if(rPid<0)
   {
@@ -290,6 +294,14 @@ void ClientDaemon_function()
   }
   if(rPid>0)
   {
+
+			close(pipefd[1]); //close write, parent only needs read
+	    int val=99;
+			while(1){
+	    read(pipefd[0], &val, sizeof(val));
+	    if(val==0)	break;
+		}
+
   	wait(NULL);
   	return;	//I'm the parent, leave the function
   }
@@ -371,12 +383,14 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 		GoldBoard->array[0]=1;
 		for(int i=0;i<mapSize;i++)
 		{
-			READ(sockfd,&tempData,1);
+			READ(sockfd,&tempData,sizeof(char));
 			dataMap[i]=tempData;
 			clientLocalCopy[i]=tempData;
 		}
 		sem_post(mysemaphore);
 //	}
+	int val=0;
+	write(pipefd[1], &val, sizeof(val));
 	int readByteN;
 	int CondiX;
 	short positionC;

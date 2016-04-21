@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
 	{}
 	if(Turn==999){
 		ClientDaemon_function();
-		sleep(10);
+//		sleep(10);
 	}
 	//////////////////////////////////////////
 	struct sigaction OtherAction;//handle the signals
