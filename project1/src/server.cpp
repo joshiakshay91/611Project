@@ -31,7 +31,7 @@ bool Refresh;
 using namespace std;
 int new_sockfd;
 sem_t *mysemaphore; //semaphore
-
+int area;
 struct GameBoard
 {
 	int rows;
@@ -40,7 +40,8 @@ struct GameBoard
 	int DaemonID;
 	unsigned char mapya[0];
 };
-
+GameBoard* GoldBoard=NULL;
+unsigned char* myLocalCopy;
 void Sother_interrupt(int SigNo)//handling interr
 {
 //	cerr<<"Fired up"<<endl;
@@ -77,8 +78,38 @@ void Sother_interrupt(int SigNo)//handling interr
     {
 
 			Refresh=true;
-		//	WRITE(fd, "Got SIGUSR1 refresh\n", sizeof("Got SIGUSR1 refresh\n"));
-    //  close(fd);
+
+			//	message="refresh from server";//
+	//			int SendSize=message.size();
+		//		WRITE(new_sockfd, message.c_str(), SendSize);
+				unsigned char* shared_memory_map=GoldBoard->mapya;
+
+				vector< pair<short,unsigned char> > pvec;
+			for(short i=0; i<area; ++i)
+			{
+				if(shared_memory_map[i]!=myLocalCopy[i])
+				{
+					pair<short,unsigned char> aPair;
+					aPair.first=i;
+					aPair.second=shared_memory_map[i];
+					pvec.push_back(aPair);
+					myLocalCopy[i]=shared_memory_map[i];
+				}
+
+			}
+			//here iterate through pvec, writing out to socket
+
+			//testing we will print it:
+			int numSend=0;
+			for(short i=0; i<pvec.size(); ++i)
+			{
+				WRITE(new_sockfd,&numSend,sizeof(int));//send 0
+				WRITE(new_sockfd,&(pvec[i].first),sizeof(short));//send the offset
+				WRITE(new_sockfd,&(pvec[i].second),sizeof(char));//send the bit
+			}
+
+
+
     }
 
     /* remove the FIFO */
@@ -127,13 +158,13 @@ if(setsid()==-1)//game grand child got divorced from main game
   int playerCol;
   read(fd,&playerRows,sizeof(int));
   read(fd,&playerCol,sizeof(int));
-  GameBoard* GoldBoard= (GameBoard*)mmap(NULL,
+  GoldBoard= (GameBoard*)mmap(NULL,
       playerRows*playerCol+sizeof(GameBoard),
       PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-	unsigned char* myLocalCopy;
+	//unsigned char* myLocalCopy;
 	unsigned char* orig;
 	orig=GoldBoard->mapya;
-	int area=playerRows*playerCol;
+	area=playerRows*playerCol;
 	myLocalCopy=(unsigned char*)malloc(sizeof (char)*playerCol*playerRows);
 
 	GoldBoard->DaemonID=getpid();
@@ -250,35 +281,6 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
 	if(Refresh)
 	{
 		Refresh=false;
-	//	message="refresh from server";//
-		int SendSize=message.size();
-//		WRITE(new_sockfd, message.c_str(), SendSize);
-		unsigned char* shared_memory_map=GoldBoard->mapya;
-
-		vector< pair<short,unsigned char> > pvec;
-  for(short i=0; i<area; ++i)
-  {
-    if(shared_memory_map[i]!=myLocalCopy[i])
-    {
-      pair<short,unsigned char> aPair;
-      aPair.first=i;
-      aPair.second=shared_memory_map[i];
-      pvec.push_back(aPair);
-      myLocalCopy[i]=shared_memory_map[i];
-    }
-
-  }
-  //here iterate through pvec, writing out to socket
-
-  //testing we will print it:
-	int numSend=0;
-  for(short i=0; i<pvec.size(); ++i)
-  {
-		WRITE(new_sockfd,&numSend,sizeof(int));//send 0
-		WRITE(new_sockfd,&(pvec[i].first),sizeof(short));//send the offset
-		WRITE(new_sockfd,&(pvec[i].second),sizeof(char));//send the bit
-  }
-
 	}
 //	printf("say something to client\n");
 //	scanf ("%s",message);
