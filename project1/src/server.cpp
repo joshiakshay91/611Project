@@ -297,13 +297,14 @@ void ClientDaemon_function()
 
 			close(pipefd[1]); //close write, parent only needs read
 	    int val=99;
-			while(1){
+		//	while(1){
 	    read(pipefd[0], &val, sizeof(val));
-	    if(val==0)	break;
-		}
-
+	    if(val==0)
+	//	}
+		{
   	wait(NULL);
   	return;	//I'm the parent, leave the function
+	}else{ return 0;}
   }
   if(fork()>0)
   {
