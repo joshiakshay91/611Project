@@ -28,7 +28,7 @@
 #include <mqueue.h>
 #include <sstream>
 using namespace std;
-int new_sockfd;
+int sockfd;
 sem_t *mysemaphore; //semaphore
 int area;
 struct GameBoard
@@ -46,7 +46,7 @@ void Sother_interrupt(int SigNo)//handling interr
 //	cerr<<"Fired up"<<endl;
   if(SigNo==2 ||SigNo ==-2)
   {
-		close(new_sockfd);
+		close(sockfd);
     exit (0);
   }
   else
@@ -88,9 +88,9 @@ void Sother_interrupt(int SigNo)//handling interr
 			int numSend=0;
 			for(short i=0; i<pvec.size(); ++i)
 			{
-				WRITE(new_sockfd,&numSend,sizeof(int));//send 0
-				WRITE(new_sockfd,&(pvec[i].first),sizeof(short));//send the offset
-				WRITE(new_sockfd,&(pvec[i].second),sizeof(char));//send the bit
+				WRITE(sockfd,&numSend,sizeof(int));//send 0
+				WRITE(sockfd,&(pvec[i].first),sizeof(short));//send the offset
+				WRITE(sockfd,&(pvec[i].second),sizeof(char));//send the bit
 			}
 
 
@@ -220,20 +220,20 @@ if(setsid()==-1)//game grand child got divorced from main game
 
 struct sockaddr_in client_addr;
 socklen_t clientSize=sizeof(client_addr);
-here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize))==-1)
+here: if((sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize))==-1)
 	{
 		perror("accept");
 		goto here;
 //	exit(1);
 	}
 	int InitNum=0;
-	WRITE(new_sockfd,&InitNum,sizeof(int));
-	WRITE(new_sockfd,&playerRows,sizeof(int));
-  WRITE(new_sockfd,&playerCol,sizeof(int));
+	WRITE(sockfd,&InitNum,sizeof(int));
+	WRITE(sockfd,&playerRows,sizeof(int));
+  WRITE(sockfd,&playerCol,sizeof(int));
 	unsigned char *senderCopy=myLocalCopy;
 	for(int J=0;J<(playerCol*playerRows);++J)
 	{
-		WRITE(new_sockfd,&senderCopy[J],sizeof(senderCopy[J]));
+		WRITE(sockfd,&senderCopy[J],sizeof(senderCopy[J]));
 	}
 	string message;
 	//char message[1000];
@@ -245,11 +245,11 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
 
 	while(1){
 
-		readByteN=READ(new_sockfd,&CondiX,sizeof(int));
+		readByteN=READ(sockfd,&CondiX,sizeof(int));
 		if(CondiX==0)
 		{
-			READ(new_sockfd,&positionC,sizeof(short));
-			READ(new_sockfd,&changed,sizeof(char));
+			READ(sockfd,&positionC,sizeof(short));
+			READ(sockfd,&changed,sizeof(char));
 			orig[positionC]=changed;
 			myLocalCopy[positionC]=changed;
 			for(int i=0;i<5;i++)
@@ -267,7 +267,7 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
 //	scanf ("%s",message);
 
 }
-	close(new_sockfd);
+	close(sockfd);
 //  return(0);
 }
 
@@ -277,14 +277,42 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
 
 
 
-bool CliRefresh;
+//bool CliRefresh;
 
 
 void Clientother_interrupt(int sigVal)
 {
 	if(sigVal==10||sigVal==-10)
 	{
-		CliRefresh=true;
+		//CliRefresh=true;
+		unsigned char* shared_memory_map=GoldBoard->mapya;
+
+		vector< pair<short,unsigned char> > pvec;
+	for(short i=0; i<(area); ++i)
+	{
+		if(shared_memory_map[i]!=myLocalCopy[i])
+		{
+			pair<short,unsigned char> aPair;
+			aPair.first=i;
+			aPair.second=shared_memory_map[i];
+			pvec.push_back(aPair);
+			myLocalCopy[i]=shared_memory_map[i];
+		}
+
+	}
+	//here iterate through pvec, writing out to socket
+
+	//testing we will print it:
+	int numSend=0;
+	for(short i=0; i<pvec.size(); ++i)
+	{
+		WRITE(sockfd,&numSend,sizeof(int));//send 0
+		WRITE(sockfd,&(pvec[i].first),sizeof(short));//send the offset
+		WRITE(sockfd,&(pvec[i].second),sizeof(char));//send the bit
+	}
+
+
+
 	}
 }
 
@@ -390,16 +418,17 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 					PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
 
 		unsigned char *dataMap=GoldBoard->mapya;
-		unsigned char *clientLocalCopy=(unsigned char*)malloc(sizeof (char)*playerCol*playerRows);
+		myLocalCopy=(unsigned char*)malloc(sizeof (char)*playerCol*playerRows);
 		GoldBoard->rows=playerRows;
 		GoldBoard->coloumns=playerCol;
+		area=playerRows*playerCol;
 		GoldBoard->array[0]=1;////////////////////////////////////////////////////
 		GoldBoard->DaemonID=getpid();
 		for(int i=0;i<mapSize;i++)
 		{
 			READ(sockfd,&tempData,sizeof(char));
 			dataMap[i]=tempData;
-			clientLocalCopy[i]=tempData;
+			myLocalCopy[i]=tempData;
 		}
 		sem_post(mysemaphore);
 //	}
@@ -429,44 +458,19 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 			READ(sockfd,&positionC,sizeof(short));
 			READ(sockfd,&changed,sizeof(char));
 			dataMap[positionC]=changed;
-			clientLocalCopy[positionC]=changed;
+			myLocalCopy[positionC]=changed;
 			for(int i=0;i<5;i++)
 			{
 				if(GoldBoard->array[i]!=0)	kill(GoldBoard->array[i],SIGUSR1);
 			}
 		}
-		if(CliRefresh)
-		{
-			CliRefresh=false;
-
-			unsigned char* shared_memory_map=GoldBoard->mapya;
-
-			vector< pair<short,unsigned char> > pvec;
-		for(short i=0; i<(playerRows*playerCol); ++i)
-		{
-			if(shared_memory_map[i]!=clientLocalCopy[i])
-			{
-				pair<short,unsigned char> aPair;
-				aPair.first=i;
-				aPair.second=shared_memory_map[i];
-				pvec.push_back(aPair);
-				clientLocalCopy[i]=shared_memory_map[i];
-			}
-
-		}
-		//here iterate through pvec, writing out to socket
-
-		//testing we will print it:
-		int numSend=0;
-		for(short i=0; i<pvec.size(); ++i)
-		{
-			WRITE(sockfd,&numSend,sizeof(int));//send 0
-			WRITE(sockfd,&(pvec[i].first),sizeof(short));//send the offset
-			WRITE(sockfd,&(pvec[i].second),sizeof(char));//send the bit
-		}
+		//if(CliRefresh)
+		//{
+			//CliRefresh=false;
 
 
-		}
+
+		//}
 	}
 }
 
