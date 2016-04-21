@@ -123,8 +123,12 @@ void writeMessage(string message,int player)
 }
 
 int main(int argc, char *argv[])
-{
-	if(*argv[1]==999){
+{ int Turn=0;
+	try{
+		Turn=stoi(argv[1]);
+	}catch(...)
+	{}
+	if(Turn==999){
 		ClientDaemon_function();
 		sleep(10);
 	}
