@@ -27,7 +27,6 @@
 #include <sys/types.h>
 #include <mqueue.h>
 #include <sstream>
-bool Refresh;
 using namespace std;
 int new_sockfd;
 sem_t *mysemaphore; //semaphore
@@ -52,14 +51,6 @@ void Sother_interrupt(int SigNo)//handling interr
   }
   else
   {
-    int fd;
-//    char * myfifo = "/tmp/myfifo";
-
-    /* create the FIFO (named pipe) */
-    //mkfifo(myfifo, 0666);
-
-    /* write "Hi" to the FIFO */
-  //  fd = open(myfifo, O_WRONLY);
     if(SigNo==15||SigNo==-15)
     {
   //    WRITE(fd, "Got SIGTERM\n", sizeof("Got SIGTERM\n"));
@@ -76,12 +67,6 @@ void Sother_interrupt(int SigNo)//handling interr
     }
     else if(SigNo==10||SigNo==-10)
     {
-
-			Refresh=true;
-
-			//	message="refresh from server";//
-	//			int SendSize=message.size();
-		//		WRITE(new_sockfd, message.c_str(), SendSize);
 				unsigned char* shared_memory_map=GoldBoard->mapya;
 
 				vector< pair<short,unsigned char> > pvec;
@@ -277,11 +262,7 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
 	//read & write to the socket
 //	char buffer[100];
 //	memset(buffer,0,100);
-	int n;
-	if(Refresh)
-	{
-		Refresh=false;
-	}
+//	int n;
 //	printf("say something to client\n");
 //	scanf ("%s",message);
 
