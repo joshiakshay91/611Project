@@ -245,11 +245,11 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
 
       while(1){
 
-	      readByteN=READ(new_sockfd,&CondiX,sizeof(int));
+	      readByteN=read(new_sockfd,&CondiX,sizeof(int));
 	      if(CondiX==0)
 	      {
-		      READ(new_sockfd,&positionC,sizeof(short));
-		      READ(new_sockfd,&changed,sizeof(char));
+		      read(new_sockfd,&positionC,sizeof(short));
+		      read(new_sockfd,&changed,sizeof(char));
 					myLocalCopy[positionC]=changed;
 					sem_wait(mysemaphore);
 		      GoldBoard->mapya[positionC]=changed;
