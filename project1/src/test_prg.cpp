@@ -24,6 +24,7 @@ Date: 13 March 2016
 #include <sys/types.h>
 #include <mqueue.h>
 #include "server.cpp"
+#include "client.cpp"
 using namespace std;
 
 
