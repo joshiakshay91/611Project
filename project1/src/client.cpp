@@ -45,12 +45,33 @@ bool CliRefresh;
 
 void Clientother_interrupt(int sigVal)
 {
+  if(sigVal==2 ||sigVal ==-2)
+  {
+    close(new_sockfd);
+    exit (0);
+  }
+  else
+  {
+    if(sigVal==15||sigVal==-15)
+    {
+      //    WRITE(fd, "Got SIGTERM\n", sizeof("Got SIGTERM\n"));
+      //close(fd);
+    }
+    else if(sigVal==1||sigVal==-1)
+    {
+      sem_close(mysemaphore);
+      shm_unlink("/APJMEMORY");
+      sem_unlink("APJgoldchase");
+      exit(0);
+      //    WRITE(fd, "Got SIGHUP\n", sizeof("Got SIGHUP\n"));
+      //close(fd);
+    }
 	if(sigVal==10||sigVal==-10)
 	{
 		CliRefresh=true;
 	}
 }
-
+}
 
 
 
@@ -75,7 +96,7 @@ void ClientDaemon_function()
 			read(pipefd, &val, sizeof(val));
 			if(val==0);
 			{
-				wait(NULL);
+				wait(NULL);//zombie rip
 				return;	//I'm the parent, leave the function
 			}
 		}
