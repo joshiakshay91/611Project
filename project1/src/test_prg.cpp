@@ -389,6 +389,10 @@ int main(int argc, char *argv[])
 		if(GoldBoard->DaemonID!=0)
 		{
 			kill(GoldBoard->DaemonID,SIGHUP);
+			if(lastPos){
+			sem_close(mysemaphore);
+			shm_unlink("/APJMEMORY");
+			sem_unlink("APJgoldchase");}
 		}
 		else{
 			sem_close(mysemaphore);

@@ -40,6 +40,7 @@ struct GameBoard
 	int DaemonID;
 	unsigned char mapya[0];
 };*/
+//GameBoard* GoldBoard=NULL;
 unsigned char* myLocalCopy;
 void Sother_interrupt(int SigNo)//handling interr
 {
