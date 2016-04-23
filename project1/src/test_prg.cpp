@@ -317,7 +317,7 @@ int main(int argc, char *argv[])
 		read(fd,&player2col,sizeof(int));
 		std::uniform_int_distribution<int> rand(1,(player2rows*player2col)); //here
 		engi.seed(aj());
-		GameBoard* GoldBoard= (GameBoard*)mmap(NULL,
+	 GoldBoard= (GameBoard*)mmap(NULL,
 				player2rows*player2col+sizeof(GameBoard),
 				PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
 		GoldBoard->rows=player2rows;
