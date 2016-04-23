@@ -280,7 +280,7 @@ int main(int argc, char *argv[])
 		}catch(std::runtime_error& e){
 			sem_post(mysemaphore);
 			GoldBoard->array[0]=0;
-			if(lastManStatus(GoldBoard))
+		//	if(lastManStatus(GoldBoard))
 			{
 				if(GoldBoard->DaemonID!=0)
 				{
@@ -357,7 +357,7 @@ int main(int argc, char *argv[])
 					GoldBoard->array[i]=0;
 				}
 			}
-			if(lastManStatus(GoldBoard))
+		//	if(lastManStatus(GoldBoard))
 			{
 				if(GoldBoard->DaemonID!=0)
 				{
@@ -380,7 +380,7 @@ int main(int argc, char *argv[])
 		lastPos=lastManStatus(GoldBoard);
 	}
 	QueueCleaner();
-	if(lastPos)
+//	if(lastPos)
 	{
 		if(GoldBoard->DaemonID!=0)
 		{
