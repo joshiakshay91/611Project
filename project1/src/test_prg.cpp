@@ -129,7 +129,6 @@ void writeMessage(string message,int player)
 
 int main(int argc, char *argv[])
 { int Turn=0;
-	
 	try{
 		Turn=stoi(argv[1]);
 	}catch(...)
@@ -137,8 +136,6 @@ int main(int argc, char *argv[])
 	if(Turn==999){
 		ClientDaemon_function();
 		//		sleep(10);
-	}else{
-		ServerDaemon_function();
 	}
 	//////////////////////////////////////////
 	struct sigaction OtherAction;//handle the signals
@@ -159,10 +156,6 @@ int main(int argc, char *argv[])
 	int line_length=0;
 //	GameBoard* GoldBoard;
 	bool lastPos= false; //checking the last player status;
-//////////////////////////////////
-int vala=0;
-write(pipefd, &vala, sizeof(vala));
-
 	////////////////////////////////Sigaction declaration chunk
 	struct sigaction ActionJackson;
 	ActionJackson.sa_handler=handle_interrupt;
@@ -286,7 +279,7 @@ write(pipefd, &vala, sizeof(vala));
 			}
 			sem_post(mysemaphore);
 			pointer=&goldMine;
-//			ServerDaemon_function();
+			ServerDaemon_function();
 			movement(GoldBoard,player1Placement,goldMine,myplayer,mysemaphore);
 		}catch(std::runtime_error& e){
 			sem_post(mysemaphore);
