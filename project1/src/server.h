@@ -11,5 +11,6 @@ struct GameBoard
 	unsigned char mapya[0];
 };
 sem_t *mysemaphore; //semaphore
-
+GameBoard* GoldBoard=NULL;
+int pipefd;
 #endif

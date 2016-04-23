@@ -40,7 +40,6 @@ struct GameBoard
 	int DaemonID;
 	unsigned char mapya[0];
 };*/
-GameBoard* GoldBoard=NULL;
 unsigned char* myLocalCopy;
 void Sother_interrupt(int SigNo)//handling interr
 {
@@ -114,6 +113,11 @@ void Sother_interrupt(int SigNo)//handling interr
 void ServerDaemon_function()
 {
 	// printf("Daemon Started");
+	const char* pipefifo="/dev/tmp/waiter";
+	//int pipefd;
+	//pipe(pipefd);
+	mkfifo(pipefifo, 0666);
+	pipefd = open(pipefifo, O_WRONLY);
 
 	int rPid=fork();
 	if(rPid<0)
@@ -128,6 +132,17 @@ void ServerDaemon_function()
 	if(fork()>0)
 	{
 		exit(0);//game child killed/exited
+	}
+	int val=99;
+	while(1){
+		read(pipefd, &val, sizeof(val));
+		if(val==0);
+		{
+			sleep(1);
+			break;
+			//wait(NULL);//zombie
+			//return;	//I'm the parent, leave the function
+		}
 	}
 	if(setsid()==-1)//game grand child got divorced from main game
 	{
@@ -170,16 +185,6 @@ void ServerDaemon_function()
 	//demon created
 
 	//server.cpp
-	//  printf("In daemon");
-	struct sigaction OtherAction;//handle the signals
-	OtherAction.sa_handler=Sother_interrupt;
-	sigemptyset(&OtherAction.sa_mask);
-	OtherAction.sa_flags=0;
-	OtherAction.sa_restorer=NULL;
-	sigaction(SIGINT, &OtherAction, NULL);// sig usr1 - map refresh
-	sigaction(SIGHUP, &OtherAction, NULL);// mqueue
-	sigaction(SIGTERM, &OtherAction, NULL);
-	sigaction(SIGUSR1, &OtherAction, NULL);
 	int sockfd; //file descriptor for the socket
 	int status; //for error checking
 
@@ -226,6 +231,16 @@ void ServerDaemon_function()
 
 	//	printf("Blocking, waiting for client to connect\n");
 
+	//  printf("In daemon");
+	struct sigaction OtherAction;//handle the signals
+	OtherAction.sa_handler=Sother_interrupt;
+	sigemptyset(&OtherAction.sa_mask);
+	OtherAction.sa_flags=0;
+	OtherAction.sa_restorer=NULL;
+	sigaction(SIGINT, &OtherAction, NULL);// sig usr1 - map refresh
+	sigaction(SIGHUP, &OtherAction, NULL);// mqueue
+	sigaction(SIGTERM, &OtherAction, NULL);
+	sigaction(SIGUSR1, &OtherAction, NULL);
 
 	struct sockaddr_in client_addr;
 	socklen_t clientSize=sizeof(client_addr);

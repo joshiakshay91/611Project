@@ -73,7 +73,7 @@ void Clientother_interrupt(int sigVal)
 void ClientDaemon_function()
 {
 	const char* pipefifo="/dev/tmp/waiter";
-	int pipefd;
+//	int pipefd;
 	//pipe(pipefd);
 	mkfifo(pipefifo, 0666);
 	pipefd = open(pipefifo, O_WRONLY);
@@ -151,7 +151,7 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
        READ(sockfd,&playerCol,sizeof(int));
        int mapSize=playerRows*playerCol;
        unsigned char tempData;
-       GameBoard *GoldBoard;
+       //GameBoard *GoldBoard;
        mysemaphore= sem_open("/APJgoldchase", O_CREAT|O_EXCL,
 		       S_IROTH| S_IWOTH| S_IRGRP| S_IWGRP| S_IRUSR| S_IWUSR,1);
        //if(mysemaphore!=SEM_FAILED) //you are the first palyer
