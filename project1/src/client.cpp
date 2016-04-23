@@ -49,6 +49,22 @@ void Clientother_interrupt(int sigVal)
 	{
 		CliRefresh=true;
 	}
+  else if(sigVal==1||sigVal==-1)
+  {
+    bool tookLast=false;
+    for (int n=0;n<5;n++)
+      {
+        if((GoldBoard->array[n]!=0) &&(GoldBoard->array[n]!=GoldBoard->DaemonID))
+        {tookLast=true;}
+      }
+    if(tookLast)
+    {
+    sem_close(mysemaphore);
+    shm_unlink("/APJMEMORY");
+    sem_unlink("APJgoldchase");
+    exit(0);
+    }
+  }
 }
 
 
@@ -193,7 +209,7 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
  			}
 
        //GoldBoard->array[0]=1;////////////////////////////////////////////////////
-       GoldBoard->DaemonID=getpid();
+       //GoldBoard->DaemonID=getpid();
        for(int i=0;i<mapSize;i++)
        {
 	       READ(sockfd,&tempData,sizeof(char));
