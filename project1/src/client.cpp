@@ -57,7 +57,7 @@ void Clientother_interrupt(int sigVal)
         if((GoldBoard->array[n]!=0) &&(GoldBoard->array[n]!=GoldBoard->DaemonID))
         {tookLast=true;}
       }
-    if(tookLast)
+    if(tookLast==false)
     {
     sem_close(mysemaphore);
     shm_unlink("/APJMEMORY");

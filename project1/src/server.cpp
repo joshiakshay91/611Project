@@ -65,7 +65,7 @@ void Sother_interrupt(int SigNo)//handling interr
 					if((GoldBoard->array[n]!=0) &&(GoldBoard->array[n]!=GoldBoard->DaemonID))
 					{tookLast=true;}
 				}
-			if(tookLast)
+			if(tookLast==false)
 			{
 			sem_close(mysemaphore);
 			shm_unlink("/APJMEMORY");
