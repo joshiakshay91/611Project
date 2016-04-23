@@ -227,9 +227,31 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
 	      //	exit(1);
       }
       int InitNum=0;
+			int SockPlrz=0;
       WRITE(new_sockfd,&InitNum,sizeof(int));
       WRITE(new_sockfd,&playerRows,sizeof(int));
       WRITE(new_sockfd,&playerCol,sizeof(int));
+			for(int z=0;z<5;z++)
+			{
+				if(GoldBoard->array[z]!=0)
+				{
+					int byter=0;
+					switch (z) {
+						case 0:	byter=G_PLR0;
+										break;
+						case 1: byter=G_PLR1;
+										break;
+						case 2:	byter=G_PLR2;
+										break;
+						case 3: byter=G_PLR3;
+										break;
+						case 4: byter=G_PLR4;
+										break;
+					}
+					SockPlrz|=byter;
+				}
+			}
+			WRITE(new_sockfd,&SockPlrz,sizeof(int));
       unsigned char *senderCopy=myLocalCopy;
       for(int J=0;J<(playerCol*playerRows);++J)
       {
@@ -245,11 +267,11 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
 
       while(1){
 
-	      readByteN=read(new_sockfd,&CondiX,sizeof(int));
+	      readByteN=READ(new_sockfd,&CondiX,sizeof(int));
 	      if(CondiX==0)
 	      {
-		      read(new_sockfd,&positionC,sizeof(short));
-		      read(new_sockfd,&changed,sizeof(char));
+		      READ(new_sockfd,&positionC,sizeof(short));
+		      READ(new_sockfd,&changed,sizeof(char));
 					myLocalCopy[positionC]=changed;
 					sem_wait(mysemaphore);
 		      GoldBoard->mapya[positionC]=changed;

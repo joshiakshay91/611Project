@@ -156,7 +156,43 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
        unsigned char *clientLocalCopy=(unsigned char*)malloc(sizeof (char)*playerCol*playerRows);
        GoldBoard->rows=playerRows;
        GoldBoard->coloumns=playerCol;
-       GoldBoard->array[0]=1;////////////////////////////////////////////////////
+       int SockPlrz;
+       READ(sockfd,&SockPlrz,sizeof(int));
+       GoldBoard->DaemonID=getpid();
+       int DamID=getpid();
+       int OutByte=SockPlrz;
+
+       for(int z=0;z<5;z++)
+ 			{
+ 				if(z==0)
+        {
+          OutByte&=G_PLR0;
+          if(OutByte==G_PLR0) GoldBoard->array[z]=DamID;
+        }
+        else if(z==1)
+        {
+          OutByte&=G_PLR1;
+          if(OutByte==G_PLR1) GoldBoard->array[z]=DamID;
+        }
+        else if(z==2)
+        {
+          OutByte&=G_PLR2;
+          if(OutByte==G_PLR2) GoldBoard->array[z]=DamID;
+        }
+        else if(z==3)
+        {
+          OutByte&=G_PLR3;
+          if(OutByte==G_PLR3) GoldBoard->array[z]=DamID;
+        }
+        else if(z==4)
+        {
+          OutByte&=G_PLR4;
+          if(OutByte==G_PLR4) GoldBoard->array[z]=DamID;
+        }
+        OutByte=SockPlrz;
+ 			}
+
+       //GoldBoard->array[0]=1;////////////////////////////////////////////////////
        GoldBoard->DaemonID=getpid();
        for(int i=0;i<mapSize;i++)
        {
