@@ -1,8 +1,7 @@
 #ifndef CLIENT_CPP
 #define CLIENT_CPP
 
-#include "goldchase.h"
-#include "Map.h"
+
 #include <sys/types.h>
 #include<sys/socket.h>
 #include<netdb.h>
@@ -272,10 +271,10 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 		       //here iterate through pvec, writing out to socket
 
 		       //testing we will print it:
-		       int numSend=0;
+		       unsigned char numSend=0;
 		       for(short i=0; i<pvec.size(); ++i)
 		       {
-			       WRITE(sockfd,&numSend,sizeof(int));//send 0
+			       WRITE(sockfd,&numSend,sizeof(unsigned char));//send 0
 			       WRITE(sockfd,&(pvec[i].first),sizeof(short));//send the offset
 			       WRITE(sockfd,&(pvec[i].second),sizeof(char));//send the bit
 		       }

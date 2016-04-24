@@ -1,6 +1,7 @@
 #ifndef SERVER_H
 #define SERVER_H
-
+#include "goldchase.h"
+#include "Map.h"
 int area;
 struct GameBoard
 {
@@ -13,4 +14,13 @@ struct GameBoard
 sem_t *mysemaphore; //semaphore
 GameBoard* GoldBoard=NULL;
 int pipefd;
+
+Map* pointer=NULL;//Global Map Pointer
+void handle_interrupt(int)
+{
+	if(pointer)
+	{
+		pointer->drawMap();
+	}
+}
 #endif

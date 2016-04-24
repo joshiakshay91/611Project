@@ -1,8 +1,7 @@
 //Socket server
 #ifndef SERVER_CPP
 #define SERVER_CPP
-#include "goldchase.h"
-#include "Map.h"
+
 #include <sys/types.h>
 #include<sys/socket.h>
 #include<netdb.h>
@@ -171,15 +170,15 @@ void ServerDaemon_function()
 
 	//server.cpp
 	//  printf("In daemon");
-	struct sigaction OtherAction;//handle the signals
-	OtherAction.sa_handler=Sother_interrupt;
-	sigemptyset(&OtherAction.sa_mask);
-	OtherAction.sa_flags=0;
-	OtherAction.sa_restorer=NULL;
-	sigaction(SIGINT, &OtherAction, NULL);// sig usr1 - map refresh
-	sigaction(SIGHUP, &OtherAction, NULL);// mqueue
-	sigaction(SIGTERM, &OtherAction, NULL);
-	sigaction(SIGUSR1, &OtherAction, NULL);
+	struct sigaction ServerAction;//handle the signals
+	ServerAction.sa_handler=Sother_interrupt;
+	sigemptyset(&ServerAction.sa_mask);
+	ServerAction.sa_flags=0;
+	ServerAction.sa_restorer=NULL;
+	sigaction(SIGINT, &ServerAction, NULL);// sig usr1 - map refresh
+	sigaction(SIGHUP, &ServerAction, NULL);// mqueue
+	sigaction(SIGTERM, &ServerAction, NULL);
+	sigaction(SIGUSR1, &ServerAction, NULL);
 	int sockfd; //file descriptor for the socket
 	int status; //for error checking
 
@@ -270,15 +269,21 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
       //char message[1000];
 
       int readByteN;
-      int CondiX=-1;
+      unsigned char CondiX=-1;
       short positionC;
       unsigned char changed;
+			const char* pipefifo="/tmp/waiter";
+			mkfifo(pipefifo, 0666);
+			int pipefd;
+			pipefd = open(pipefifo, O_WRONLY);
+
 
       while(1){
-
-	      readByteN=READ(new_sockfd,&CondiX,sizeof(int));
+				readByteN=READ(new_sockfd,&CondiX,sizeof(unsigned char));
+			//	write(pipefd,&readByteN,1);
 	      if(CondiX==0)
 	      {
+					CondiX=-1;
 		      READ(new_sockfd,&positionC,sizeof(short));
 		      READ(new_sockfd,&changed,sizeof(char));
 					myLocalCopy[positionC]=changed;
@@ -290,7 +295,46 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
 		      {
 			      if(GoldBoard->array[i]!=0)	kill(GoldBoard->array[i],SIGUSR1);
 		      }
+//					int pipefd;
+					//pipe(pipefd);
+					write(pipefd,"Calling",7);
+					handle_interrupt(0);
 	      }
+				else if(CondiX==G_SOCKPLR){
+					READ(sockfd,&SockPlrz,sizeof(int));
+					int DamID=getpid();
+	        int OutByte=SockPlrz;
+
+	        for(int z=0;z<5;z++)
+	  			{
+	  				if(z==0)
+	         {
+	           OutByte&=G_PLR0;
+	           if(OutByte==G_PLR0) GoldBoard->array[z]=DamID;
+	         }
+	         else if(z==1)
+	         {
+	           OutByte&=G_PLR1;
+	           if(OutByte==G_PLR1) GoldBoard->array[z]=DamID;
+	         }
+	         else if(z==2)
+	         {
+	           OutByte&=G_PLR2;
+	           if(OutByte==G_PLR2) GoldBoard->array[z]=DamID;
+	         }
+	         else if(z==3)
+	         {
+	           OutByte&=G_PLR3;
+	           if(OutByte==G_PLR3) GoldBoard->array[z]=DamID;
+	         }
+	         else if(z==4)
+	         {
+	           OutByte&=G_PLR4;
+	           if(OutByte==G_PLR4) GoldBoard->array[z]=DamID;
+	         }
+	         OutByte=SockPlrz;
+	  			}
+				}
       }
       close(new_sockfd);
       //  return(0);

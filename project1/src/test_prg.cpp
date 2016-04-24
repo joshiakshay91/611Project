@@ -3,8 +3,7 @@ Author: Akshay Joshi
 Date: 13 March 2016
  */
 
-#include "goldchase.h"
-#include "Map.h"
+
 #include <iostream>
 #include <cstdlib>
 #include <string>
@@ -28,19 +27,10 @@ Date: 13 March 2016
 using namespace std;
 
 
-//the GameBoard struct
-/*struct GameBoard
-  {
-  int rows;
-  int coloumns;
-  int array[5];
-  int DaemonID;
-  unsigned char mapya[0];
-  };*/
 int pid;
 bool Somewhere=true;//for handling interrupt
 bool ColdFlag=true;//for handling interrupt when getting input
-Map* pointer=NULL;//Global Map Pointer
+
 bool lastManStatus(GameBoard*); //func to check last player ? y or n
 void movement(GameBoard*,int,Map&,char,sem_t*); //for moving the players
 char playerSpot(GameBoard*, int); //to check which spot is available
@@ -49,15 +39,7 @@ void QueueCleaner();
 void broadcaster(string msg,GameBoard* GoldBoard);//broadcasts message
 string senderI;//username
 void SignalKiller(int PlayerArray[],int DID);
-void handle_interrupt(int)
-{
-	if(pointer)
-	{
-		pointer->drawMap();
-	}else{
-		cerr<<"Pointer isNULL"<<endl;
-	}
-}
+
 void other_interrupt(int)
 {
 	if(ColdFlag)
