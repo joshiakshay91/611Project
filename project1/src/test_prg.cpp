@@ -305,6 +305,7 @@ int main(int argc, char *argv[])
 		GoldBoard->rows=player2rows;
 		GoldBoard->coloumns=player2col;
 		currentPlayer=playerSpot(GoldBoard,pid);
+		/////////////////////////////////////////////SIGHUP TO Daemon
 		//while deciding player spot pid is provided
 		if(currentPlayer=='F') //if F is returned it means 5 players
 		{ 										//are already playing

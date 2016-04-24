@@ -249,6 +249,57 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 			       if(GoldBoard->array[i]!=0)	kill(GoldBoard->array[i],SIGUSR1);
 		       }
 	       }
+				 else if(CondiX==G_SOCKPLR)
+ 				{
+ 					READ(sockfd,&SockPlrz,sizeof(int));
+ 					int DamID=getpid();
+ 	        int OutByte=SockPlrz;
+
+ 	        for(int z=0;z<5;z++)
+ 	  			{
+ 	  				if(z==0)
+ 	         {
+ 	          	OutByte&=G_PLR0;
+ 	           	if((OutByte==G_PLR0) && (GoldBoard->array[z]==0))
+ 						 		GoldBoard->array[z]=DamID;
+ 							else
+ 								GoldBoard->array[z]=0;
+ 	         }
+ 	         else if(z==1)
+ 	         {
+ 	           OutByte&=G_PLR1;
+ 	           if((OutByte==G_PLR1) && (GoldBoard->array[z]==0))
+ 							 GoldBoard->array[z]=DamID;
+ 						 else
+ 							 GoldBoard->array[z]=0;
+ 	         }
+ 	         else if(z==2)
+ 	         {
+ 	           OutByte&=G_PLR2;
+ 	           if((OutByte==G_PLR2) && (GoldBoard->array[z]==0))
+ 							 GoldBoard->array[z]=DamID;
+ 						 else
+ 							 GoldBoard->array[z]=0;
+ 	         }
+ 	         else if(z==3)
+ 	         {
+ 	           OutByte&=G_PLR3;
+ 	           if((OutByte==G_PLR3) && (GoldBoard->array[z]==0))
+ 							 GoldBoard->array[z]=DamID;
+ 						 else
+ 							 GoldBoard->array[z]=0;
+ 	         }
+ 	         else if(z==4)
+ 	         {
+ 	           OutByte&=G_PLR4;
+ 	           if((OutByte==G_PLR4) && (GoldBoard->array[z]==0))
+ 							 GoldBoard->array[z]=DamID;
+ 						 else
+ 							 GoldBoard->array[z]=0;
+ 					 }
+ 	         OutByte=SockPlrz;
+ 	  			}
+ 				}
 	       if(CliRefresh)
 	       {
 		       CliRefresh=false;

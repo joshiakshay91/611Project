@@ -60,7 +60,7 @@ void Sother_interrupt(int SigNo)//handling interr
 		{
 			bool tookLast=false;
 			for (int n=0;n<5;n++)
-				{
+				{//comment the &&
 					if((GoldBoard->array[n]!=0) &&(GoldBoard->array[n]!=GoldBoard->DaemonID))
 					{tookLast=true;}
 				}
@@ -265,23 +265,16 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
       {
 	      WRITE(new_sockfd,&senderCopy[J],sizeof(senderCopy[J]));
       }
-      string message;
-      //char message[1000];
 
       int readByteN;
       unsigned char CondiX=-1;
       short positionC;
       unsigned char changed;
-			const char* pipefifo="/tmp/waiter";
-			mkfifo(pipefifo, 0666);
-			int pipefd;
-			pipefd = open(pipefifo, O_WRONLY);
 
 
       while(1){
 				readByteN=READ(new_sockfd,&CondiX,sizeof(unsigned char));
-			//	write(pipefd,&readByteN,1);
-	      if(CondiX==0)
+			  if(CondiX==0)
 	      {
 					CondiX=-1;
 		      READ(new_sockfd,&positionC,sizeof(short));
@@ -295,12 +288,10 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
 		      {
 			      if(GoldBoard->array[i]!=0)	kill(GoldBoard->array[i],SIGUSR1);
 		      }
-//					int pipefd;
-					//pipe(pipefd);
-					write(pipefd,"Calling",7);
-					handle_interrupt(0);
+//					handle_interrupt(0);
 	      }
-				else if(CondiX==G_SOCKPLR){
+				else if(CondiX==G_SOCKPLR)
+				{
 					READ(sockfd,&SockPlrz,sizeof(int));
 					int DamID=getpid();
 	        int OutByte=SockPlrz;
@@ -309,29 +300,44 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
 	  			{
 	  				if(z==0)
 	         {
-	           OutByte&=G_PLR0;
-	           if(OutByte==G_PLR0) GoldBoard->array[z]=DamID;
+	          	OutByte&=G_PLR0;
+	           	if((OutByte==G_PLR0) && (GoldBoard->array[z]==0))
+						 		GoldBoard->array[z]=DamID;
+							else
+								GoldBoard->array[z]=0;
 	         }
 	         else if(z==1)
 	         {
 	           OutByte&=G_PLR1;
-	           if(OutByte==G_PLR1) GoldBoard->array[z]=DamID;
+	           if((OutByte==G_PLR1) && (GoldBoard->array[z]==0))
+							 GoldBoard->array[z]=DamID;
+						 else
+							 GoldBoard->array[z]=0;
 	         }
 	         else if(z==2)
 	         {
 	           OutByte&=G_PLR2;
-	           if(OutByte==G_PLR2) GoldBoard->array[z]=DamID;
+	           if((OutByte==G_PLR2) && (GoldBoard->array[z]==0))
+							 GoldBoard->array[z]=DamID;
+						 else
+							 GoldBoard->array[z]=0;
 	         }
 	         else if(z==3)
 	         {
 	           OutByte&=G_PLR3;
-	           if(OutByte==G_PLR3) GoldBoard->array[z]=DamID;
+	           if((OutByte==G_PLR3) && (GoldBoard->array[z]==0))
+							 GoldBoard->array[z]=DamID;
+						 else
+							 GoldBoard->array[z]=0;
 	         }
 	         else if(z==4)
 	         {
 	           OutByte&=G_PLR4;
-	           if(OutByte==G_PLR4) GoldBoard->array[z]=DamID;
-	         }
+	           if((OutByte==G_PLR4) && (GoldBoard->array[z]==0))
+							 GoldBoard->array[z]=DamID;
+						 else
+							 GoldBoard->array[z]=0;
+					 }
 	         OutByte=SockPlrz;
 	  			}
 				}
