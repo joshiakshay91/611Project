@@ -42,6 +42,7 @@ using namespace std;
 bool CliRefresh;
 int mySideProc=0;
 int sockfd;
+bool updater=false;
 void Clientother_interrupt(int sigVal)
 {
 	if(sigVal==10||sigVal==-10)
@@ -63,7 +64,9 @@ void Clientother_interrupt(int sigVal)
     sem_unlink("APJgoldchase");
     exit(0);
     }
-		int tempProc=0;
+	}
+	updater=true;
+/*		int tempProc=0;
 		for (int n=0;n<5;n++)
 		{
 			if((GoldBoard->array[n]!=0) &&(GoldBoard->array[n]!=GoldBoard->DaemonID))
@@ -116,7 +119,7 @@ void Clientother_interrupt(int sigVal)
 			WRITE(sockfd,&SendoPlr,sizeof(int));
 			mySideProc;
   }
-}
+}*/
 }
 
 
@@ -382,6 +385,63 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 			       WRITE(sockfd,&(pvec[i].second),sizeof(char));//send the bit
 		       }
 	       }
+				 if(updater)
+				 {
+					 updater=false;
+					 int tempProc=0;
+					 for (int n=0;n<5;n++)
+					 {
+						 if((GoldBoard->array[n]!=0) &&(GoldBoard->array[n]!=GoldBoard->DaemonID))
+						 {
+							 tempProc++;
+						 }
+					 }
+					 if(tempProc>mySideProc)
+					 {
+						 int playPos[5];
+						 int ActualPos;
+						 int SendoPlr=0;
+						 for(int n=0;n<5;n++)
+						 {
+							 if((GoldBoard->array[n]!=0) &&(GoldBoard->array[n]!=GoldBoard->DaemonID))
+							 {
+								 playPos[n]=1;
+							 }
+						 }
+						 for(int n=0;n<5;n++)
+						 {
+							 if(playPos[n]==1)
+							 {
+								 ActualPos=n;
+							 }
+						 }
+						 for(int z=0;z<5;z++)
+						 {
+							 if(z==ActualPos)
+							 {
+								 int byter=0;
+								 switch (z) {
+									 case 0:	byter=G_PLR0;
+													 break;
+									 case 1: byter=G_PLR1;
+													 break;
+									 case 2:	byter=G_PLR2;
+													 break;
+									 case 3: byter=G_PLR3;
+													 break;
+									 case 4: byter=G_PLR4;
+													 break;
+								 }
+								 SendoPlr|=byter;
+
+							 }
+						 }
+						 unsigned char SOCKETPLAYER=G_SOCKPLR;
+						 WRITE(sockfd,&SOCKETPLAYER,sizeof(unsigned char));
+						 WRITE(sockfd,&SendoPlr,sizeof(int));
+						 mySideProc;
+					}
+				 }
        }
 }
 

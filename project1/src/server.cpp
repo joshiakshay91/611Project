@@ -291,7 +291,8 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
 //					handle_interrupt(0);
 	      }
 				else if(CondiX==G_SOCKPLR)
-				{
+				{	CondiX=-1;
+					/*sem_wait(mysemaphore);
 					READ(sockfd,&SockPlrz,sizeof(int));
 					int DamID=getpid();
 	        int OutByte=SockPlrz;
@@ -340,6 +341,7 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
 					 }
 	         OutByte=SockPlrz;
 	  			}
+					sem_post(mysemaphore);*/
 				}
       }
       close(new_sockfd);

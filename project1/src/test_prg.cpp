@@ -261,7 +261,7 @@ int main(int argc, char *argv[])
 			}
 			sem_post(mysemaphore);
 			pointer=&goldMine;
-//			cout<<"Calling daemon";
+			cout<<"Calling daemon";
 			ServerDaemon_function();
 			movement(GoldBoard,player1Placement,goldMine,myplayer,mysemaphore);
 		}catch(std::runtime_error& e){
