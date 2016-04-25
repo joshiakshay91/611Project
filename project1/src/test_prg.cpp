@@ -261,6 +261,7 @@ int main(int argc, char *argv[])
 			}
 			sem_post(mysemaphore);
 			pointer=&goldMine;
+//			cout<<"Calling daemon";
 			ServerDaemon_function();
 			movement(GoldBoard,player1Placement,goldMine,myplayer,mysemaphore);
 		}catch(std::runtime_error& e){
@@ -306,6 +307,7 @@ int main(int argc, char *argv[])
 		GoldBoard->coloumns=player2col;
 		currentPlayer=playerSpot(GoldBoard,pid);
 		/////////////////////////////////////////////SIGHUP TO Daemon
+		kill(GoldBoard->DaemonID,SIGHUP);
 		//while deciding player spot pid is provided
 		if(currentPlayer=='F') //if F is returned it means 5 players
 		{ 										//are already playing

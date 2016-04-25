@@ -94,10 +94,10 @@ void Sother_interrupt(int SigNo)//handling interr
 			//here iterate through pvec, writing out to socket
 
 			//testing we will print it:
-			int numSend=0;
+			unsigned char numSend=0;
 			for(short i=0; i<pvec.size(); ++i)
 			{
-				WRITE(new_sockfd,&numSend,sizeof(int));//send 0
+				WRITE(new_sockfd,&numSend,sizeof(unsigned char));//send 0
 				WRITE(new_sockfd,&(pvec[i].first),sizeof(short));//send the offset
 				WRITE(new_sockfd,&(pvec[i].second),sizeof(char));//send the bit
 			}
