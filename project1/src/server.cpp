@@ -186,7 +186,7 @@ void ServerDaemon_function()
 	//change this # between 2000-65k before using
 	const char* portno="4500";
 	struct addrinfo hints;
-	//	memset(&hints, 0, sizeof(hints)); //zero out everything in structure
+	memset(&hints, 0, sizeof(hints)); //zero out everything in structure
 	hints.ai_family = AF_UNSPEC; //don't care. Either IPv4 or IPv6
 	hints.ai_socktype=SOCK_STREAM; // TCP stream sockets
 	hints.ai_flags=AI_PASSIVE; //file in the IP of the server for me
@@ -271,7 +271,6 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
       short positionC;
       unsigned char changed;
 
-
       while(1){
 				readByteN=READ(new_sockfd,&CondiX,sizeof(unsigned char));
 			  if(CondiX==0)
@@ -292,7 +291,7 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
 	      }
 				else if(CondiX==G_SOCKPLR)
 				{	CondiX=-1;
-					/*sem_wait(mysemaphore);
+				/*	sem_wait(mysemaphore);
 					READ(sockfd,&SockPlrz,sizeof(int));
 					int DamID=getpid();
 	        int OutByte=SockPlrz;
