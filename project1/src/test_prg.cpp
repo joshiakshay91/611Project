@@ -119,8 +119,20 @@ void writeMessage(string message,int player)
 	mq_close(writequeue_fd);
 }
 
-int main()
+int main(int argc, char* argv[])
 {
+
+	int Turn=0;
+	if(argc>1){
+	try{
+		Turn=stoi(argv[1]);
+	}catch(...)
+	{}
+	if(Turn==999){
+		client_function();
+		//		sleep(10);
+	}
+}
 	//////////////////////////////////////////
 	struct sigaction OtherAction;//handle the signals
 	OtherAction.sa_handler=other_interrupt;
