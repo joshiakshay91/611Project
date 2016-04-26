@@ -102,7 +102,7 @@ void client_function()
 
 	struct addrinfo *servinfo;
 	//instead of "localhost", it could by any domain name
-	if((status=getaddrinfo("172.16.57.134", portno, &hints, &servinfo))==-1)
+	if((status=getaddrinfo("172.16.57.132", portno, &hints, &servinfo))==-1)
 	{
 		fprintf(stderr, "getaddrinfo error: %s\n", gai_strerror(status));
 		//		exit(1);
