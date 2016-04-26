@@ -206,8 +206,28 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
        ////////////////
     //   int vala=0;
     //   write(pipefd, &vala, sizeof(vala));
+	//	int readByteN;
+		unsigned char CondiX=-1;
+		short positionC;
+		unsigned char changed;
     while(1){
-      sleep(1);
+
+			READ(sockfd,&CondiX,sizeof(unsigned char));
+			if(CondiX==0)
+			{
+				CondiX=-1;
+				READ(sockfd,&positionC,sizeof(short));
+				READ(sockfd,&changed,sizeof(char));
+				clientLocalCopy[positionC]=changed;
+				sem_wait(mysemaphore);
+				GoldBoard->mapya[positionC]=changed;
+				sem_post(mysemaphore);
+				for(int i=0;i<5;i++)
+				{
+					if(GoldBoard->array[i]!=0)	kill(GoldBoard->array[i],SIGUSR1);
+				}
+			}
     }
+		close(sockfd);
 
 }

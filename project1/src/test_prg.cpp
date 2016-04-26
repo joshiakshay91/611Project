@@ -44,7 +44,7 @@ void QueueSetup(int player);//function to setup mqueue
 void QueueCleaner();
 void broadcaster(string msg,GameBoard* GoldBoard);//broadcasts message
 string senderI;//username
-void SignalKiller(int PlayerArray[]);
+void SignalKiller(int PlayerArray[], int);
 void handle_interrupt(int)
 {
 	if(pointer)
@@ -286,7 +286,7 @@ int main(int argc, char* argv[])
 			}
 		}
 		GoldBoard->array[0]=0;
-		SignalKiller((GoldBoard->array));
+		SignalKiller((GoldBoard->array), GoldBoard->DaemonID);
 		lastPos=lastManStatus(GoldBoard); //player1 ends here
 	}// if ends on this line
 	else
@@ -333,7 +333,7 @@ int main(int argc, char* argv[])
 					byte|=currentPlayer;
 					GoldBoard->mapya[player2Placement]|=byte;
 					loopFlag=false;
-					SignalKiller((GoldBoard->array));
+					SignalKiller((GoldBoard->array),GoldBoard->DaemonID);
 				}
 			}
 			sem_post(mysemaphore);
@@ -364,7 +364,7 @@ int main(int argc, char* argv[])
 				GoldBoard->array[i]=0;
 			}
 		}
-		SignalKiller((GoldBoard->array));
+		SignalKiller((GoldBoard->array), GoldBoard->DaemonID);
 		lastPos=lastManStatus(GoldBoard);
 	}
 	QueueCleaner();
@@ -543,7 +543,7 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 				}
 			}
 			Flag=false;
-			SignalKiller((GoldBoard->array));
+			SignalKiller((GoldBoard->array), GoldBoard->DaemonID);
 		}
 	}//while ends here
 	if(GoldFlag)
@@ -564,7 +564,7 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 	}
 	sem_wait(mysemaphore);
 	GoldBoard->mapya[playerPlacement]&=~myplayer;
-	SignalKiller((GoldBoard->array));
+	SignalKiller((GoldBoard->array),GoldBoard->DaemonID);
 	sem_post(mysemaphore);
 }
 
@@ -613,7 +613,7 @@ char playerSpot(GameBoard* GoldBoard, int pid)
 
 /*--------------------------------------------------------------------*/
 /*Send refresh signal to all available players*/
-void SignalKiller(int PlayerArray[])
+void SignalKiller(int PlayerArray[],int DID)
 {
 	for(int i=0;i<5;i++)
 	{
@@ -622,6 +622,7 @@ void SignalKiller(int PlayerArray[])
 			kill(PlayerArray[i],SIGUSR1);
 		}
 	}
+	if(DID!=0)	kill(DID,SIGUSR1);
 }
 /*-----------------------------------------------------------------*/
 

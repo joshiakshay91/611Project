@@ -44,9 +44,41 @@ struct GameBoard
 	GameBoard* GoldBoard;
   unsigned char* myLocalCopy;
   int area;
+	int new_sockfd;
 
-void Sother_interrupt(int)
+void Sother_interrupt(int SigNo)
 {
+	if(SigNo==SIGUSR1)
+	{
+		unsigned char* shared_memory_map=GoldBoard->mapya;
+
+		vector< pair<short,unsigned char> > pvec;
+		for(short i=0; i<area; ++i)
+		{
+			if(shared_memory_map[i]!=myLocalCopy[i])
+			{
+				pair<short,unsigned char> aPair;
+				aPair.first=i;
+				aPair.second=shared_memory_map[i];
+				pvec.push_back(aPair);
+				myLocalCopy[i]=shared_memory_map[i];
+			}
+
+		}
+		//here iterate through pvec, writing out to socket
+
+		//testing we will print it:
+		unsigned char numSend=0;
+		for(short i=0; i<(short(pvec.size())); ++i)
+		{
+			WRITE(new_sockfd,&numSend,sizeof(unsigned char));//send 0
+			WRITE(new_sockfd,&(pvec[i].first),sizeof(short));//send the offset
+			WRITE(new_sockfd,&(pvec[i].second),sizeof(char));//send the bit
+		}
+
+
+
+	}
 
 }
 
@@ -159,7 +191,7 @@ void server_function()
 
 	//	printf("Blocking, waiting for client to connect\n");
 
-  int new_sockfd;
+  //int new_sockfd;
 	struct sockaddr_in client_addr;
 	socklen_t clientSize=sizeof(client_addr);
 here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize))==-1)
@@ -199,15 +231,30 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
       {
 	      WRITE(new_sockfd,&senderCopy[J],sizeof(senderCopy[J]));
       }
-/*
-      int readByteN;
+
+      //int readByteN;
       unsigned char CondiX=-1;
       short positionC;
       unsigned char changed;
 
-*/
-while(1){
-  sleep(1);
+
+while(1)
+{
+	READ(new_sockfd,&CondiX,sizeof(unsigned char));
+	if(CondiX==0)
+	{
+		CondiX=-1;
+		READ(new_sockfd,&positionC,sizeof(short));
+		READ(new_sockfd,&changed,sizeof(char));
+		myLocalCopy[positionC]=changed;
+		GoldBoard->mapya[positionC]=changed;
+		orig=myLocalCopy;
+		for(int i=0;i<5;i++)
+		{
+			if(GoldBoard->array[i]!=0)	kill(GoldBoard->array[i],SIGUSR1);
+		}
+//					handle_interrupt(0);
+	}
 }
 
 
