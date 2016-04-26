@@ -1,4 +1,4 @@
-// Map.cpp, Version 1.2 (11 Mar 2015)
+// Map.cpp, Version 1.3 (9 Mar 2016)
 #include<ncurses.h>
 #include<panel.h>
 #include<cstdlib>
@@ -6,7 +6,6 @@
 #include<utility> //for std::pair
 #include<iostream>
 #include<stdexcept>
-#include<vector>
 
 #include"goldchase.h"
 #include"Screen.h"
@@ -73,7 +72,7 @@ unsigned int Map::getPlayer(unsigned int playerMask)
     case 5:
       return G_PLR4;
     default:
-      return -1;
+      return 0;
   }
 }
 

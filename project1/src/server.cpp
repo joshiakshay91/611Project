@@ -1,6 +1,5 @@
-//Socket server
-#ifndef SERVER_CPP
-#define SERVER_CPP
+#include "goldchase.h"
+#include "Map.h"
 
 #include <sys/types.h>
 #include<sys/socket.h>
@@ -9,9 +8,11 @@
 #include<string> //for memset
 #include<stdio.h> //for fprintf, stderr, etc.
 #include<stdlib.h> //for exit
-#include "fancyRW.h"
+
+
 #include <iostream>
 #include <cstdlib>
+#include <string>
 #include <fstream>
 #include <random>
 #include <ctime>
@@ -21,98 +22,38 @@
 #include <semaphore.h>
 #include <errno.h>
 #include <pthread.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <sys/mman.h>
+#include <unistd.h>
 #include<signal.h>
 #include <sys/types.h>
 #include <mqueue.h>
-#include <sstream>
 using namespace std;
-#include "server.h"
-int new_sockfd;
-/*sem_t *mysemaphore; //semaphore
-int area;
+#include "fancyRW.h"
+
+
 struct GameBoard
 {
 	int rows;
 	int coloumns;
 	int array[5];
-	int DaemonID;
 	unsigned char mapya[0];
-};*/
-//GameBoard* GoldBoard=NULL;
-unsigned char* myLocalCopy;
-void Sother_interrupt(int SigNo)//handling interr
+	int DaemonID;
+};
+	GameBoard* GoldBoard;
+  unsigned char* myLocalCopy;
+  int area;
+
+void Sother_interrupt(int)
 {
-	//	cerr<<"Fired up"<<endl;
-	if(SigNo==2 ||SigNo ==-2)
-	{
-		close(new_sockfd);
-		exit (0);
-	}
-	else
-	{
-		if(SigNo==15||SigNo==-15)
-		{
-			//    WRITE(fd, "Got SIGTERM\n", sizeof("Got SIGTERM\n"));
-			//close(fd);
-		}
-		else if(SigNo==1||SigNo==-1)
-		{
-			bool tookLast=false;
-			for (int n=0;n<5;n++)
-				{//comment the &&
-					if((GoldBoard->array[n]!=0) &&(GoldBoard->array[n]!=GoldBoard->DaemonID))
-					{tookLast=true;}
-				}
-			if(tookLast==false)
-			{
-			sem_close(mysemaphore);
-			shm_unlink("/APJMEMORY");
-			sem_unlink("APJgoldchase");
-			exit(0);
-			}
-			//    WRITE(fd, "Got SIGHUP\n", sizeof("Got SIGHUP\n"));
-			//close(fd);
-		}
-		else if(SigNo==10||SigNo==-10)
-		{
-			unsigned char* shared_memory_map=GoldBoard->mapya;
 
-			vector< pair<short,unsigned char> > pvec;
-			for(short i=0; i<area; ++i)
-			{
-				if(shared_memory_map[i]!=myLocalCopy[i])
-				{
-					pair<short,unsigned char> aPair;
-					aPair.first=i;
-					aPair.second=shared_memory_map[i];
-					pvec.push_back(aPair);
-					myLocalCopy[i]=shared_memory_map[i];
-				}
-
-			}
-			//here iterate through pvec, writing out to socket
-
-			//testing we will print it:
-			unsigned char numSend=0;
-			for(short i=0; i<pvec.size(); ++i)
-			{
-				WRITE(new_sockfd,&numSend,sizeof(unsigned char));//send 0
-				WRITE(new_sockfd,&(pvec[i].first),sizeof(short));//send the offset
-				WRITE(new_sockfd,&(pvec[i].second),sizeof(char));//send the bit
-			}
-
-
-			return;
-		}
-
-		/* remove the FIFO */
-		//  unlink(myfifo);
-	}
 }
-void ServerDaemon_function()
+
+
+
+void server_function()
 {
-	// printf("Daemon Started");
 
 	int rPid=fork();
 	if(rPid<0)
@@ -165,26 +106,19 @@ void ServerDaemon_function()
 	{
 		myLocalCopy[i]=orig[i];
 	}
+  struct sigaction SotherAction;//handle the signals
+	SotherAction.sa_handler=Sother_interrupt;
+	sigemptyset(&SotherAction.sa_mask);
+	SotherAction.sa_flags=0;
+	SotherAction.sa_restorer=NULL;
+	sigaction(SIGINT, &SotherAction, NULL);
+	sigaction(SIGHUP, &SotherAction, NULL);
+	sigaction(SIGTERM, &SotherAction, NULL);
+  sigaction(SIGUSR1, &SotherAction,NULL);
 
-	//demon created
-
-	//server.cpp
-	//  printf("In daemon");
-	struct sigaction ServerAction;//handle the signals
-	ServerAction.sa_handler=Sother_interrupt;
-	sigemptyset(&ServerAction.sa_mask);
-	ServerAction.sa_flags=0;
-	ServerAction.sa_restorer=NULL;
-	sigaction(SIGINT, &ServerAction, NULL);// sig usr1 - map refresh
-	sigaction(SIGHUP, &ServerAction, NULL);// mqueue
-	sigaction(SIGTERM, &ServerAction, NULL);
-	sigaction(SIGUSR1, &ServerAction, NULL);
-	int sockfd; //file descriptor for the socket
-	int status; //for error checking
-
-
-	//change this # between 2000-65k before using
-	const char* portno="4500";
+  int sockfd;
+  int status;
+  const char* portno="4500";
 	struct addrinfo hints;
 	memset(&hints, 0, sizeof(hints)); //zero out everything in structure
 	hints.ai_family = AF_UNSPEC; //don't care. Either IPv4 or IPv6
@@ -225,7 +159,7 @@ void ServerDaemon_function()
 
 	//	printf("Blocking, waiting for client to connect\n");
 
-
+  int new_sockfd;
 	struct sockaddr_in client_addr;
 	socklen_t clientSize=sizeof(client_addr);
 here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize))==-1)
@@ -265,87 +199,17 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
       {
 	      WRITE(new_sockfd,&senderCopy[J],sizeof(senderCopy[J]));
       }
-
+/*
       int readByteN;
       unsigned char CondiX=-1;
       short positionC;
       unsigned char changed;
 
-      while(1){
-				readByteN=READ(new_sockfd,&CondiX,sizeof(unsigned char));
-			  if(CondiX==0)
-	      {
-					CondiX=-1;
-		      READ(new_sockfd,&positionC,sizeof(short));
-		      READ(new_sockfd,&changed,sizeof(char));
-					myLocalCopy[positionC]=changed;
-					sem_wait(mysemaphore);
-		      GoldBoard->mapya[positionC]=changed;
-					orig=myLocalCopy;
-					sem_post(mysemaphore);
-		      for(int i=0;i<5;i++)
-		      {
-			      if(GoldBoard->array[i]!=0)	kill(GoldBoard->array[i],SIGUSR1);
-		      }
-//					handle_interrupt(0);
-	      }
-				else if(CondiX==G_SOCKPLR)
-				{	CondiX=-1;
-				/*	sem_wait(mysemaphore);
-					READ(sockfd,&SockPlrz,sizeof(int));
-					int DamID=getpid();
-	        int OutByte=SockPlrz;
-
-	        for(int z=0;z<5;z++)
-	  			{
-	  				if(z==0)
-	         {
-	          	OutByte&=G_PLR0;
-	           	if((OutByte==G_PLR0) && (GoldBoard->array[z]==0))
-						 		GoldBoard->array[z]=DamID;
-							else
-								GoldBoard->array[z]=0;
-	         }
-	         else if(z==1)
-	         {
-	           OutByte&=G_PLR1;
-	           if((OutByte==G_PLR1) && (GoldBoard->array[z]==0))
-							 GoldBoard->array[z]=DamID;
-						 else
-							 GoldBoard->array[z]=0;
-	         }
-	         else if(z==2)
-	         {
-	           OutByte&=G_PLR2;
-	           if((OutByte==G_PLR2) && (GoldBoard->array[z]==0))
-							 GoldBoard->array[z]=DamID;
-						 else
-							 GoldBoard->array[z]=0;
-	         }
-	         else if(z==3)
-	         {
-	           OutByte&=G_PLR3;
-	           if((OutByte==G_PLR3) && (GoldBoard->array[z]==0))
-							 GoldBoard->array[z]=DamID;
-						 else
-							 GoldBoard->array[z]=0;
-	         }
-	         else if(z==4)
-	         {
-	           OutByte&=G_PLR4;
-	           if((OutByte==G_PLR4) && (GoldBoard->array[z]==0))
-							 GoldBoard->array[z]=DamID;
-						 else
-							 GoldBoard->array[z]=0;
-					 }
-	         OutByte=SockPlrz;
-	  			}
-					sem_post(mysemaphore);*/
-				}
-      }
-      close(new_sockfd);
-      //  return(0);
+*/
+while(1){
+  sleep(1);
 }
 
 
-#endif
+
+}

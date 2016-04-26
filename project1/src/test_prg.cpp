@@ -2,8 +2,8 @@
 Author: Akshay Joshi
 Date: 13 March 2016
  */
-
-
+#include "goldchase.h"
+#include "Map.h"
 #include <iostream>
 #include <cstdlib>
 #include <string>
@@ -22,15 +22,21 @@ Date: 13 March 2016
 #include<signal.h>
 #include <sys/types.h>
 #include <mqueue.h>
-#include "server.cpp"
-#include "client.cpp"
 using namespace std;
-
-
+#include "fancyRW.h"
+//the GameBoard struct
+struct GameBoard
+{
+	int rows;
+	int coloumns;
+	int array[5];
+	unsigned char mapya[0];
+	int DaemonID;
+};
 int pid;
 bool Somewhere=true;//for handling interrupt
 bool ColdFlag=true;//for handling interrupt when getting input
-
+Map* pointer=NULL;//Global Map Pointer
 bool lastManStatus(GameBoard*); //func to check last player ? y or n
 void movement(GameBoard*,int,Map&,char,sem_t*); //for moving the players
 char playerSpot(GameBoard*, int); //to check which spot is available
@@ -38,8 +44,14 @@ void QueueSetup(int player);//function to setup mqueue
 void QueueCleaner();
 void broadcaster(string msg,GameBoard* GoldBoard);//broadcasts message
 string senderI;//username
-void SignalKiller(int PlayerArray[],int DID);
-
+void SignalKiller(int PlayerArray[]);
+void handle_interrupt(int)
+{
+	if(pointer)
+	{
+		pointer->drawMap();
+	}
+}
 void other_interrupt(int)
 {
 	if(ColdFlag)
@@ -107,18 +119,8 @@ void writeMessage(string message,int player)
 	mq_close(writequeue_fd);
 }
 
-
-
-int main(int argc, char *argv[])
-{ int Turn=0;
-	try{
-		Turn=stoi(argv[1]);
-	}catch(...)
-	{}
-	if(Turn==999){
-		ClientDaemon_function();
-		//		sleep(10);
-	}
+int main()
+{
 	//////////////////////////////////////////
 	struct sigaction OtherAction;//handle the signals
 	OtherAction.sa_handler=other_interrupt;
@@ -129,14 +131,14 @@ int main(int argc, char *argv[])
 	sigaction(SIGHUP, &OtherAction, NULL);
 	sigaction(SIGTERM, &OtherAction, NULL);
 	/////////////////////////////////////////
-	cout<<"Please Enter you Name your name?"<<endl;
+	cout<<"What is you name?"<<endl;
 	getline(cin,senderI);
 	ColdFlag=false;// if sig int,hup,or termed coldly while getting i/p
 	int counter,fd;
 	char byte=0;
 	int num_lines=0;
 	int line_length=0;
-//	GameBoard* GoldBoard;
+	GameBoard* GoldBoard;
 	bool lastPos= false; //checking the last player status;
 	////////////////////////////////Sigaction declaration chunk
 	struct sigaction ActionJackson;
@@ -150,7 +152,7 @@ int main(int argc, char *argv[])
 	std::default_random_engine engi;
 	std::random_device aj;//random and
 	string line,text;
-	//	sem_t *mysemaphore; //semaphore
+	sem_t *mysemaphore; //semaphore
 	mysemaphore= sem_open("/APJgoldchase", O_CREAT|O_EXCL,
 			S_IROTH| S_IWOTH| S_IRGRP| S_IWGRP| S_IRUSR| S_IWUSR,1);
 	if(mysemaphore!=SEM_FAILED) //you are the first palyer
@@ -162,7 +164,7 @@ int main(int argc, char *argv[])
 			perror("Shared memory creation failed");
 			exit(1);
 		}
-		//loading the map
+//loading the map
 		ifstream in("mymap.txt");
 		getline(in,line);
 		counter=std::stoi(line.c_str());//convert using stoi ..inclass
@@ -185,8 +187,6 @@ int main(int argc, char *argv[])
 		GoldBoard->coloumns=line_length;
 		unsigned char myplayer=G_PLR0;
 		GoldBoard->array[0]=pid;
-		GoldBoard->DaemonID=0;
-		//		GOldBoard->DaemonID=pid;
 		QueueSetup(myplayer);
 		for(int itr=1;itr<5;itr++)
 		{
@@ -261,26 +261,20 @@ int main(int argc, char *argv[])
 			}
 			sem_post(mysemaphore);
 			pointer=&goldMine;
-			cout<<"Calling daemon";
-			ServerDaemon_function();
+			server_function();
 			movement(GoldBoard,player1Placement,goldMine,myplayer,mysemaphore);
 		}catch(std::runtime_error& e){
 			sem_post(mysemaphore);
 			GoldBoard->array[0]=0;
-		//	if(lastManStatus(GoldBoard))
+			if(lastManStatus(GoldBoard))
 			{
-				if(GoldBoard->DaemonID!=0)
-				{
-					kill(GoldBoard->DaemonID,SIGHUP);
-				}
-				else{
-					sem_close(mysemaphore);
-					shm_unlink("/APJMEMORY");
-					sem_unlink("APJgoldchase");}
+				sem_close(mysemaphore);
+				shm_unlink("/APJMEMORY");
+				sem_unlink("APJgoldchase");
 			}
 		}
 		GoldBoard->array[0]=0;
-		SignalKiller((GoldBoard->array),(GoldBoard->DaemonID));
+		SignalKiller((GoldBoard->array));
 		lastPos=lastManStatus(GoldBoard); //player1 ends here
 	}// if ends on this line
 	else
@@ -300,14 +294,12 @@ int main(int argc, char *argv[])
 		read(fd,&player2col,sizeof(int));
 		std::uniform_int_distribution<int> rand(1,(player2rows*player2col)); //here
 		engi.seed(aj());
-	 GoldBoard= (GameBoard*)mmap(NULL,
+		GameBoard* GoldBoard= (GameBoard*)mmap(NULL,
 				player2rows*player2col+sizeof(GameBoard),
 				PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
 		GoldBoard->rows=player2rows;
 		GoldBoard->coloumns=player2col;
 		currentPlayer=playerSpot(GoldBoard,pid);
-		/////////////////////////////////////////////SIGHUP TO Daemon
-		kill(GoldBoard->DaemonID,SIGHUP);
 		//while deciding player spot pid is provided
 		if(currentPlayer=='F') //if F is returned it means 5 players
 		{ 										//are already playing
@@ -329,7 +321,7 @@ int main(int argc, char *argv[])
 					byte|=currentPlayer;
 					GoldBoard->mapya[player2Placement]|=byte;
 					loopFlag=false;
-					SignalKiller((GoldBoard->array),(GoldBoard->DaemonID));
+					SignalKiller((GoldBoard->array));
 				}
 			}
 			sem_post(mysemaphore);
@@ -346,16 +338,11 @@ int main(int argc, char *argv[])
 					GoldBoard->array[i]=0;
 				}
 			}
-		//	if(lastManStatus(GoldBoard))
+			if(lastManStatus(GoldBoard))
 			{
-				if(GoldBoard->DaemonID!=0)
-				{
-					kill(GoldBoard->DaemonID,SIGHUP);
-				}
-				else{
-					sem_close(mysemaphore);
-					shm_unlink("/APJMEMORY");
-					sem_unlink("APJgoldchase");}
+				sem_close(mysemaphore);
+				shm_unlink("/APJMEMORY");
+				sem_unlink("APJgoldchase");
 			}
 		}
 		for(int i=0;i<5;i++)
@@ -365,24 +352,15 @@ int main(int argc, char *argv[])
 				GoldBoard->array[i]=0;
 			}
 		}
-		SignalKiller((GoldBoard->array),(GoldBoard->DaemonID));
+		SignalKiller((GoldBoard->array));
 		lastPos=lastManStatus(GoldBoard);
 	}
 	QueueCleaner();
-//	if(lastPos)
+	if(lastPos)
 	{
-		if(GoldBoard->DaemonID!=0)
-		{
-			kill(GoldBoard->DaemonID,SIGHUP);
-			if(lastPos){
-			sem_close(mysemaphore);
-			shm_unlink("/APJMEMORY");
-			sem_unlink("APJgoldchase");}
-		}
-		else{
-			sem_close(mysemaphore);
-			shm_unlink("/APJMEMORY");
-			sem_unlink("APJgoldchase");}
+		sem_close(mysemaphore);
+		shm_unlink("/APJMEMORY");
+		sem_unlink("APJgoldchase");
 	}
 
 	return 0;
@@ -417,7 +395,6 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 	goldMine.postNotice("Welcome To The Gold Chase Game This Box is a notice Box");
 	while(button!='Q'&& (Somewhere))
 	{
-		//		if((GoldBoard->DaemonID)!=0)	cerr<<"Value of DaemonID: "<<GoldBoard->DaemonID<<endl;
 		button=goldMine.getKey();
 		if(button=='h')
 		{
@@ -554,7 +531,7 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 				}
 			}
 			Flag=false;
-			SignalKiller((GoldBoard->array),(GoldBoard->DaemonID));
+			SignalKiller((GoldBoard->array));
 		}
 	}//while ends here
 	if(GoldFlag)
@@ -575,7 +552,7 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 	}
 	sem_wait(mysemaphore);
 	GoldBoard->mapya[playerPlacement]&=~myplayer;
-	SignalKiller((GoldBoard->array),(GoldBoard->DaemonID));
+	SignalKiller((GoldBoard->array));
 	sem_post(mysemaphore);
 }
 
@@ -588,7 +565,6 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 char playerSpot(GameBoard* GoldBoard, int pid)
 {
 	char currentPlayer;
-	//	GoldBoard->DaemonID=pid;
 	if(GoldBoard->array[0]==0)
 	{
 		currentPlayer=G_PLR0;
@@ -625,7 +601,7 @@ char playerSpot(GameBoard* GoldBoard, int pid)
 
 /*--------------------------------------------------------------------*/
 /*Send refresh signal to all available players*/
-void SignalKiller(int PlayerArray[], int DID)
+void SignalKiller(int PlayerArray[])
 {
 	for(int i=0;i<5;i++)
 	{
@@ -634,7 +610,6 @@ void SignalKiller(int PlayerArray[], int DID)
 			kill(PlayerArray[i],SIGUSR1);
 		}
 	}
-	if(DID !=0)	kill(DID,SIGUSR1);
 }
 /*-----------------------------------------------------------------*/
 

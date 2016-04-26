@@ -1,6 +1,5 @@
-#ifndef CLIENT_CPP
-#define CLIENT_CPP
-
+#include "goldchase.h"
+#include "Map.h"
 
 #include <sys/types.h>
 #include<sys/socket.h>
@@ -9,9 +8,11 @@
 #include<string> //for memset
 #include<stdio.h> //for fprintf, stderr, etc.
 #include<stdlib.h> //for exit
-#include "fancyRW.h"
+
+
 #include <iostream>
 #include <cstdlib>
+#include <string>
 #include <fstream>
 #include <random>
 #include <ctime>
@@ -21,124 +22,42 @@
 #include <semaphore.h>
 #include <errno.h>
 #include <pthread.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <sys/mman.h>
+#include <unistd.h>
 #include<signal.h>
 #include <sys/types.h>
 #include <mqueue.h>
-#include <sstream>
-#include "server.h"
 using namespace std;
-//sem_t *mysemaphore; //semaphore
-//int area;
-/*struct GameBoard
+#include "fancyRW.h"
+
+
+struct GameBoard
 {
 	int rows;
 	int coloumns;
 	int array[5];
-	int DaemonID;
 	unsigned char mapya[0];
+	int DaemonID;
 };
-*/
-bool CliRefresh;
-int mySideProc=0;
-int sockfd;
-bool updater=false;
-void Clientother_interrupt(int sigVal)
+
+
+
+void Clientother_interrupt(int){}
+
+
+
+void client_function()
 {
-	if(sigVal==10||sigVal==-10)
-	{
-		CliRefresh=true;
-	}
-  else if(sigVal==1||sigVal==-1)
-  {
-    bool tookLast=false;
-    for (int n=0;n<5;n++)
-      {
-        if((GoldBoard->array[n]!=0) &&(GoldBoard->array[n]!=GoldBoard->DaemonID))
-        {tookLast=true;}
-      }
-    if(tookLast==false)
-    {
-    sem_close(mysemaphore);
-    shm_unlink("/APJMEMORY");
-    sem_unlink("APJgoldchase");
-    exit(0);
-    }
-	}
-	updater=true;
-/*		int tempProc=0;
-		for (int n=0;n<5;n++)
-		{
-			if((GoldBoard->array[n]!=0) &&(GoldBoard->array[n]!=GoldBoard->DaemonID))
-			{
-				tempProc++;
-			}
-		}
-		if(tempProc>mySideProc)
-		{
-			int playPos[5];
-			int ActualPos;
-			int SendoPlr=0;
-			for(int n=0;n<5;n++)
-			{
-				if((GoldBoard->array[n]!=0) &&(GoldBoard->array[n]!=GoldBoard->DaemonID))
-				{
-					playPos[n]=1;
-				}
-			}
-			for(int n=0;n<5;n++)
-			{
-				if(playPos[n]==1)
-				{
-					ActualPos=n;
-				}
-			}
-			for(int z=0;z<5;z++)
-			{
-				if(z==ActualPos)
-				{
-					int byter=0;
-					switch (z) {
-						case 0:	byter=G_PLR0;
-										break;
-						case 1: byter=G_PLR1;
-										break;
-						case 2:	byter=G_PLR2;
-										break;
-						case 3: byter=G_PLR3;
-										break;
-						case 4: byter=G_PLR4;
-										break;
-					}
-					SendoPlr|=byter;
-
-				}
-			}
-			unsigned char SOCKETPLAYER=G_SOCKPLR;
-			WRITE(sockfd,&SOCKETPLAYER,sizeof(unsigned char));
-			WRITE(sockfd,&SendoPlr,sizeof(int));
-			mySideProc;
-  }
-}*/
-}
-
-
-
-void ClientDaemon_function()
-{
-	const char* pipefifo="/dev/tmp/waiter";
-	int pipefd;
-	//pipe(pipefd);
-	mkfifo(pipefifo, 0666);
-	pipefd = open(pipefifo, O_WRONLY);
-	int rPid=fork();
+  int rPid=fork();
 	if(rPid<0)
 	{
 		cerr<<"Creation problem"<<endl;
 	}
 	if(rPid>0)
 	{
-
+/*
 		//			close(pipefd[1]); //close write, parent only needs read
 		int val=99;
 		while(1){
@@ -148,8 +67,9 @@ void ClientDaemon_function()
 				wait(NULL);//zombie
 				return;	//I'm the parent, leave the function
 			}
-		}
-
+		}*/
+    sleep(3);
+    return;
 	}
 	if(fork()>0)
 	{
@@ -169,7 +89,7 @@ void ClientDaemon_function()
 	open("/dev/null", O_RDWR); //fd 2::stderr
 	umask(0);
 	chdir("/");
-//	int sockfd; //file descriptor for the socket
+	int sockfd; //file descriptor for the socket
 	int status; //for error checking
 
 	//change this # between 2000-65k before using
@@ -205,7 +125,8 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
        READ(sockfd,&playerCol,sizeof(int));
        int mapSize=playerRows*playerCol;
        unsigned char tempData;
-      // GameBoard *GoldBoard;
+       sem_t *mysemaphore;
+       GameBoard *GoldBoard;
        mysemaphore= sem_open("/APJgoldchase", O_CREAT|O_EXCL,
 		       S_IROTH| S_IWOTH| S_IRGRP| S_IWGRP| S_IRUSR| S_IWUSR,1);
        //if(mysemaphore!=SEM_FAILED) //you are the first palyer
@@ -283,167 +204,10 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
        sigaction(SIGTERM, &OtherAction, NULL);
        sigaction(SIGUSR1, &OtherAction, NULL);
        ////////////////
-       int vala=0;
-       write(pipefd, &vala, sizeof(vala));
+    //   int vala=0;
+    //   write(pipefd, &vala, sizeof(vala));
+    while(1){
+      sleep(1);
+    }
 
-
-       int readByteN;
-       unsigned char CondiX=-1;
-       short positionC;
-       unsigned char changed;
-       while(1){
-	       readByteN=READ(sockfd,&CondiX,sizeof(unsigned char));
-	       if(CondiX==0)
-	       {
-		       READ(sockfd,&positionC,sizeof(short));
-		       READ(sockfd,&changed,sizeof(char));
-		       dataMap[positionC]=changed;
-		       clientLocalCopy[positionC]=changed;
-		       for(int i=0;i<5;i++)
-		       {
-			       if(GoldBoard->array[i]!=0)	kill(GoldBoard->array[i],SIGUSR1);
-		       }
-	       }
-				 else if(CondiX==G_SOCKPLR)
- 				{
- 					READ(sockfd,&SockPlrz,sizeof(int));
- 					int DamID=getpid();
- 	        int OutByte=SockPlrz;
-
- 	        for(int z=0;z<5;z++)
- 	  			{
- 	  				if(z==0)
- 	         {
- 	          	OutByte&=G_PLR0;
- 	           	if((OutByte==G_PLR0) && (GoldBoard->array[z]==0))
- 						 		GoldBoard->array[z]=DamID;
- 							else
- 								GoldBoard->array[z]=0;
- 	         }
- 	         else if(z==1)
- 	         {
- 	           OutByte&=G_PLR1;
- 	           if((OutByte==G_PLR1) && (GoldBoard->array[z]==0))
- 							 GoldBoard->array[z]=DamID;
- 						 else
- 							 GoldBoard->array[z]=0;
- 	         }
- 	         else if(z==2)
- 	         {
- 	           OutByte&=G_PLR2;
- 	           if((OutByte==G_PLR2) && (GoldBoard->array[z]==0))
- 							 GoldBoard->array[z]=DamID;
- 						 else
- 							 GoldBoard->array[z]=0;
- 	         }
- 	         else if(z==3)
- 	         {
- 	           OutByte&=G_PLR3;
- 	           if((OutByte==G_PLR3) && (GoldBoard->array[z]==0))
- 							 GoldBoard->array[z]=DamID;
- 						 else
- 							 GoldBoard->array[z]=0;
- 	         }
- 	         else if(z==4)
- 	         {
- 	           OutByte&=G_PLR4;
- 	           if((OutByte==G_PLR4) && (GoldBoard->array[z]==0))
- 							 GoldBoard->array[z]=DamID;
- 						 else
- 							 GoldBoard->array[z]=0;
- 					 }
- 	         OutByte=SockPlrz;
- 	  			}
- 				}
-	       if(CliRefresh)
-	       {
-		       CliRefresh=false;
-
-		       unsigned char* shared_memory_map=GoldBoard->mapya;
-
-		       vector< pair<short,unsigned char> > pvec;
-		       for(short i=0; i<(playerRows*playerCol); ++i)
-		       {
-			       if(shared_memory_map[i]!=clientLocalCopy[i])
-			       {
-				       pair<short,unsigned char> aPair;
-				       aPair.first=i;
-				       aPair.second=shared_memory_map[i];
-				       pvec.push_back(aPair);
-				       clientLocalCopy[i]=shared_memory_map[i];
-			       }
-
-		       }
-		       //here iterate through pvec, writing out to socket
-
-		       //testing we will print it:
-		       unsigned char numSend=0;
-		       for(short i=0; i<pvec.size(); ++i)
-		       {
-			       WRITE(sockfd,&numSend,sizeof(unsigned char));//send 0
-			       WRITE(sockfd,&(pvec[i].first),sizeof(short));//send the offset
-			       WRITE(sockfd,&(pvec[i].second),sizeof(char));//send the bit
-		       }
-	       }
-				 if(updater)
-				 {
-					 updater=false;
-					 int tempProc=0;
-					 for (int n=0;n<5;n++)
-					 {
-						 if((GoldBoard->array[n]!=0) &&(GoldBoard->array[n]!=GoldBoard->DaemonID))
-						 {
-							 tempProc++;
-						 }
-					 }
-					 if(tempProc>mySideProc)
-					 {
-						 int playPos[5];
-						 int ActualPos;
-						 int SendoPlr=0;
-						 for(int n=0;n<5;n++)
-						 {
-							 if((GoldBoard->array[n]!=0) &&(GoldBoard->array[n]!=GoldBoard->DaemonID))
-							 {
-								 playPos[n]=1;
-							 }
-						 }
-						 for(int n=0;n<5;n++)
-						 {
-							 if(playPos[n]==1)
-							 {
-								 ActualPos=n;
-							 }
-						 }
-						 for(int z=0;z<5;z++)
-						 {
-							 if(z==ActualPos)
-							 {
-								 int byter=0;
-								 switch (z) {
-									 case 0:	byter=G_PLR0;
-													 break;
-									 case 1: byter=G_PLR1;
-													 break;
-									 case 2:	byter=G_PLR2;
-													 break;
-									 case 3: byter=G_PLR3;
-													 break;
-									 case 4: byter=G_PLR4;
-													 break;
-								 }
-								 SendoPlr|=byter;
-
-							 }
-						 }
-						 unsigned char SOCKETPLAYER=G_SOCKPLR;
-						 WRITE(sockfd,&SOCKETPLAYER,sizeof(unsigned char));
-						 WRITE(sockfd,&SendoPlr,sizeof(int));
-						 mySideProc;
-					}
-				 }
-       }
 }
-
-
-#endif

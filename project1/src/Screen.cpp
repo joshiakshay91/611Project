@@ -1,4 +1,4 @@
-// Screen.cpp, Version 1.2 (11 Mar 2015)
+// Screen.cpp, Version 1.3 (9 Mar 2016)
 #include<ncurses.h>
 #include<panel.h>
 #include<cstdlib>
@@ -109,6 +109,8 @@ int Screen::getOrdinal(const char* title, const std::vector<int>& nums)
   do
   {
     keystroke=getch();
+    if(keystroke==KEY_BACKSPACE)
+      break;
     int i=0;
     for(int i=0; i<nums.size(); ++i)
       if(nums[i]==keystroke-'0')
@@ -120,7 +122,7 @@ int Screen::getOrdinal(const char* title, const std::vector<int>& nums)
   del_panel(dialog_panel);
   delwin(dialog);
   panelRefresh();
-  return keystroke-'0';
+  return (keystroke==KEY_BACKSPACE) ? 0 : keystroke-'0';
 }
 
 std::string Screen::getText(void)

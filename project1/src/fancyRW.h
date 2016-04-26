@@ -1,8 +1,3 @@
-/*
- * write template functions that are guaranteed to read and write the
- * number of bytes desired
- */
-
 #ifndef fancyRW_h
 #define fancyRW_h
 #include<unistd.h>
@@ -48,4 +43,10 @@ int WRITE(int fd, T* obj_ptr, int count)
 	}
 	return err;
 }
+
+
+
+
+void server_function();
+void client_function();
 #endif
