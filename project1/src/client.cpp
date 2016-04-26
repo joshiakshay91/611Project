@@ -41,11 +41,41 @@ struct GameBoard
 	unsigned char mapya[0];
 	int DaemonID;
 };
+GameBoard *GoldBoardR;
+unsigned char* clientLocalCopy;
+int sockfd;
+int areaC;
+void Clientother_interrupt(int SigNo)
+{
+	if(SigNo==SIGUSR1)
+	{
+		unsigned char* shared_memory_map=GoldBoardR->mapya;
 
+		vector< pair<short,unsigned char> > pvec;
+		for(short i=0; i<areaC; ++i)
+		{
+			if(shared_memory_map[i]!=clientLocalCopy[i])
+			{
+				pair<short,unsigned char> aPair;
+				aPair.first=i;
+				aPair.second=shared_memory_map[i];
+				pvec.push_back(aPair);
+				clientLocalCopy[i]=shared_memory_map[i];
+			}
 
+		}
+		//here iterate through pvec, writing out to socket
 
-void Clientother_interrupt(int){}
-
+		//testing we will print it:
+		unsigned char numSend=0;
+		for(short i=0; i<(short(pvec.size())); ++i)
+		{
+			WRITE(sockfd,&numSend,sizeof(unsigned char));//send 0
+			WRITE(sockfd,&(pvec[i].first),sizeof(short));//send the offset
+			WRITE(sockfd,&(pvec[i].second),sizeof(char));//send the bit
+		}
+}
+}
 
 
 void client_function()
@@ -89,7 +119,7 @@ void client_function()
 	open("/dev/null", O_RDWR); //fd 2::stderr
 	umask(0);
 	chdir("/");
-	int sockfd; //file descriptor for the socket
+	//int sockfd; //file descriptor for the socket
 	int status; //for error checking
 
 	//change this # between 2000-65k before using
@@ -126,11 +156,12 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
        int mapSize=playerRows*playerCol;
        unsigned char tempData;
        sem_t *mysemaphore;
-       GameBoard *GoldBoard;
+
        mysemaphore= sem_open("/APJgoldchase", O_CREAT|O_EXCL,
 		       S_IROTH| S_IWOTH| S_IRGRP| S_IWGRP| S_IRUSR| S_IWUSR,1);
        //if(mysemaphore!=SEM_FAILED) //you are the first palyer
        //{
+			 areaC=playerRows*playerCol;
        sem_wait(mysemaphore);
        int fd = shm_open("/APJMEMORY", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
        if(fd==-1)
@@ -139,17 +170,17 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 	       exit(1);
        }
        ftruncate(fd,sizeof(GameBoard)+(mapSize));
-       GoldBoard=(GameBoard*) mmap(NULL,
+       GoldBoardR=(GameBoard*) mmap(NULL,
 		       playerRows*playerCol+sizeof(GameBoard),
 		       PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
 
-       unsigned char *dataMap=GoldBoard->mapya;
-       unsigned char *clientLocalCopy=(unsigned char*)malloc(sizeof (char)*playerCol*playerRows);
-       GoldBoard->rows=playerRows;
-       GoldBoard->coloumns=playerCol;
+       unsigned char *dataMap=GoldBoardR->mapya;
+       clientLocalCopy=(unsigned char*)malloc(sizeof (char)*playerCol*playerRows);
+       GoldBoardR->rows=playerRows;
+       GoldBoardR->coloumns=playerCol;
        int SockPlrz;
        READ(sockfd,&SockPlrz,sizeof(int));
-       GoldBoard->DaemonID=getpid();
+       GoldBoardR->DaemonID=getpid();
        int DamID=getpid();
        int OutByte=SockPlrz;
 
@@ -158,33 +189,33 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
  				if(z==0)
         {
           OutByte&=G_PLR0;
-          if(OutByte==G_PLR0) GoldBoard->array[z]=DamID;
+          if(OutByte==G_PLR0) GoldBoardR->array[z]=DamID;
         }
         else if(z==1)
         {
           OutByte&=G_PLR1;
-          if(OutByte==G_PLR1) GoldBoard->array[z]=DamID;
+          if(OutByte==G_PLR1) GoldBoardR->array[z]=DamID;
         }
         else if(z==2)
         {
           OutByte&=G_PLR2;
-          if(OutByte==G_PLR2) GoldBoard->array[z]=DamID;
+          if(OutByte==G_PLR2) GoldBoardR->array[z]=DamID;
         }
         else if(z==3)
         {
           OutByte&=G_PLR3;
-          if(OutByte==G_PLR3) GoldBoard->array[z]=DamID;
+          if(OutByte==G_PLR3) GoldBoardR->array[z]=DamID;
         }
         else if(z==4)
         {
           OutByte&=G_PLR4;
-          if(OutByte==G_PLR4) GoldBoard->array[z]=DamID;
+          if(OutByte==G_PLR4) GoldBoardR->array[z]=DamID;
         }
         OutByte=SockPlrz;
  			}
 
-       //GoldBoard->array[0]=1;////////////////////////////////////////////////////
-       //GoldBoard->DaemonID=getpid();
+       //GoldBoardR->array[0]=1;////////////////////////////////////////////////////
+       //GoldBoardR->DaemonID=getpid();
        for(int i=0;i<mapSize;i++)
        {
 	       READ(sockfd,&tempData,sizeof(char));
@@ -220,11 +251,11 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 				READ(sockfd,&changed,sizeof(char));
 				clientLocalCopy[positionC]=changed;
 				sem_wait(mysemaphore);
-				GoldBoard->mapya[positionC]=changed;
+				GoldBoardR->mapya[positionC]=changed;
 				sem_post(mysemaphore);
 				for(int i=0;i<5;i++)
 				{
-					if(GoldBoard->array[i]!=0)	kill(GoldBoard->array[i],SIGUSR1);
+					if(GoldBoardR->array[i]!=0)	kill(GoldBoardR->array[i],SIGUSR1);
 				}
 			}
     }
