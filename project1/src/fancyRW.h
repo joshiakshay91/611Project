@@ -44,6 +44,14 @@ int WRITE(int fd, T* obj_ptr, int count)
 	return err;
 }
 
+struct GameBoard
+{
+	int rows;
+	int coloumns;
+	int array[5];
+	unsigned char mapya[0];
+	int DaemonID;
+};
 
 
 

@@ -33,14 +33,14 @@ using namespace std;
 #include "fancyRW.h"
 
 
-struct GameBoard
+/*struct GameBoard
 {
 	int rows;
 	int coloumns;
 	int array[5];
 	unsigned char mapya[0];
 	int DaemonID;
-};
+};*/
 	GameBoard* GoldBoard;
   unsigned char* myLocalCopy;
   int area;
@@ -78,7 +78,7 @@ void Sother_interrupt(int SigNo)
 	bool tookLast=false;
 	 for (int n=0;n<5;n++)
 		 {
-			 if(GoldBoard->array[n]!=0)
+			 if((GoldBoard->array[n]!=0)&& (GoldBoard->array[n]!=GoldBoard->DaemonID))
 			 {tookLast=true;}
 		 }
 	 if(tookLast==false)

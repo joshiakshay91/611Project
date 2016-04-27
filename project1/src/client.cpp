@@ -33,14 +33,14 @@ using namespace std;
 #include "fancyRW.h"
 
 
-struct GameBoard
+/*struct GameBoard
 {
 	int rows;
 	int coloumns;
 	int array[5];
 	unsigned char mapya[0];
 	int DaemonID;
-};
+};*/
 GameBoard *GoldBoardR;
 sem_t *mysemaphore;
 unsigned char* clientLocalCopy;
