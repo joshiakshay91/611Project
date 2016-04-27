@@ -226,6 +226,7 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
        int SockPlrz;
        READ(sockfd,&SockPlrz,sizeof(int));
        GoldBoardR->DaemonID=getpid();
+			 GoldBoardR->DaemonID=0;
        int DamID=getpid();
        int OutByte=SockPlrz;
 
