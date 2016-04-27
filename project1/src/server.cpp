@@ -45,7 +45,7 @@ struct GameBoard
   unsigned char* myLocalCopy;
   int area;
 	int new_sockfd=0;
-
+	sem_t *mysemaphore1;
 void Sother_interrupt(int SigNo)
 {
 	if(SigNo==SIGUSR1)
@@ -75,9 +75,7 @@ void Sother_interrupt(int SigNo)
 	}
 	if(SigNo==SIGHUP)
 	{
-		sem_t *mysemaphore;
-		mysemaphore=sem_open("/APJgoldchase",O_RDWR);
-		bool tookLast=false;
+	bool tookLast=false;
 	 for (int n=0;n<5;n++)
 		 {
 			 if(GoldBoard->array[n]!=0)
@@ -85,7 +83,7 @@ void Sother_interrupt(int SigNo)
 		 }
 	 if(tookLast==false)
 	 {
-	 sem_close(mysemaphore);
+	 sem_close(mysemaphore1);
 	 shm_unlink("/APJMEMORY");
 	 sem_unlink("APJgoldchase");
 	 exit(0);
@@ -125,7 +123,7 @@ void Sother_interrupt(int SigNo)
 
 void server_function()
 {
-
+	mysemaphore1=sem_open("/APJgoldchase",O_RDWR);
 	int rPid=fork();
 	if(rPid<0)
 	{

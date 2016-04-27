@@ -35,6 +35,7 @@ struct GameBoard
 };
 	//sem_t *mysemaphore; //semaphore
 int pid;
+int DAM_ID=0;
 bool Somewhere=true;//for handling interrupt
 bool ColdFlag=true;//for handling interrupt when getting input
 Map* pointer=NULL;//Global Map Pointer
@@ -386,12 +387,12 @@ int main(int argc, char* argv[])
 	}
 	QueueCleaner();
 	//if(lastPos)
-	if(GoldBoard->DaemonID!=0)	kill(GoldBoard->DaemonID,SIGHUP);
-	/*{
-		sem_close(mysemaphore);
-		shm_unlink("/APJMEMORY");
-		sem_unlink("APJgoldchase");
-	}*/
+	kill(DAM_ID,SIGHUP);
+	if(lastPos){
+			sem_close(mysemaphore);
+			shm_unlink("/APJMEMORY");
+			sem_unlink("APJgoldchase");
+		}
 
 	return 0;
 }
@@ -415,6 +416,7 @@ bool lastManStatus(GameBoard* GoldBoard)
 void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 		char myplayer, sem_t* mysemaphore)
 {
+	DAM_ID=GoldBoard->DaemonID;
 	bool GoldFlag=false,Flag=false;
 	int MapCol=GoldBoard->coloumns;
 	int MapRow=GoldBoard->rows;
