@@ -226,7 +226,6 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
        int SockPlrz;
        READ(sockfd,&SockPlrz,sizeof(int));
        GoldBoardR->DaemonID=getpid();
-			 GoldBoardR->DaemonID=0;
        int DamID=getpid();
        int OutByte=SockPlrz;
 
@@ -269,6 +268,7 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 	       clientLocalCopy[i]=tempData;//loc copy
        }
        sem_post(mysemaphore);
+
        //	}
        //
        struct sigaction OtherAction;//handle the signals
@@ -287,6 +287,7 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 		unsigned char CondiX=-1;
 		short positionC;
 		unsigned char changed;
+		GoldBoardR->DaemonID=getpid();
     while(1){
 
 			READ(sockfd,&CondiX,sizeof(unsigned char));
