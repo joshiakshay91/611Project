@@ -44,14 +44,13 @@ struct GameBoard
 	GameBoard* GoldBoard;
   unsigned char* myLocalCopy;
   int area;
-	int new_sockfd;
+	int new_sockfd=0;
 
 void Sother_interrupt(int SigNo)
 {
 	if(SigNo==SIGUSR1)
 	{
 		unsigned char* shared_memory_map=GoldBoard->mapya;
-
 		vector< pair<short,unsigned char> > pvec;
 		for(short i=0; i<area; ++i)
 		{
@@ -63,10 +62,8 @@ void Sother_interrupt(int SigNo)
 				pvec.push_back(aPair);
 				myLocalCopy[i]=shared_memory_map[i];
 			}
-
 		}
 		//here iterate through pvec, writing out to socket
-
 		//testing we will print it:
 		unsigned char numSend=0;
 		for(short i=0; i<(short(pvec.size())); ++i)
@@ -75,9 +72,51 @@ void Sother_interrupt(int SigNo)
 			WRITE(new_sockfd,&(pvec[i].first),sizeof(short));//send the offset
 			WRITE(new_sockfd,&(pvec[i].second),sizeof(char));//send the bit
 		}
-
-
-
+	}
+	if(SigNo==SIGHUP)
+	{
+		sem_t *mysemaphore;
+		mysemaphore=sem_open("/APJgoldchase",O_RDWR);
+		bool tookLast=false;
+	 for (int n=0;n<5;n++)
+		 {
+			 if(GoldBoard->array[n]!=0)
+			 {tookLast=true;}
+		 }
+	 if(tookLast==false)
+	 {
+	 sem_close(mysemaphore);
+	 shm_unlink("/APJMEMORY");
+	 sem_unlink("APJgoldchase");
+	 exit(0);
+	 }
+	 unsigned char SockPlayer;
+	 SockPlayer=G_SOCKPLR;
+	 for(int i=0; i<5; ++i)
+	 {
+  		if(GoldBoard->array[i]!=0)
+			{
+    		switch(i)
+    		{
+      	case 0:
+        	SockPlayer|=G_PLR0;
+        	break;
+      	case 1:
+        	SockPlayer|=G_PLR1;
+        	break;
+				case 2:
+					SockPlayer|=G_PLR2;
+					break;
+				case 3:
+					SockPlayer|=G_PLR3;
+					break;
+				case 4:
+					SockPlayer|=G_PLR4;
+					break;
+    		}
+			}
+		}
+			if(new_sockfd!=0)	WRITE(new_sockfd,&SockPlayer,sizeof(unsigned char));//send sock
 	}
 
 }

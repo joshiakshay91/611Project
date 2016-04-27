@@ -33,6 +33,7 @@ struct GameBoard
 	unsigned char mapya[0];
 	int DaemonID;
 };
+	//sem_t *mysemaphore; //semaphore
 int pid;
 bool Somewhere=true;//for handling interrupt
 bool ColdFlag=true;//for handling interrupt when getting input
@@ -129,7 +130,16 @@ int main(int argc, char* argv[])
 	}catch(...)
 	{}
 	if(Turn==999){
-		client_function();
+		sem_t *mysemaphore;
+		mysemaphore=sem_open("/APJgoldchase",O_RDWR);
+		if(mysemaphore==SEM_FAILED)
+				{
+					client_function();
+				}
+		else
+			{
+				sem_close(mysemaphore);
+			}
 		//		sleep(10);
 	}
 }
@@ -273,7 +283,12 @@ int main(int argc, char* argv[])
 			}
 			sem_post(mysemaphore);
 			pointer=&goldMine;
-			server_function();
+			if(GoldBoard->DaemonID==0)
+				{
+					server_function();
+					//sighup
+					if(GoldBoard->DaemonID!=0)	kill(GoldBoard->DaemonID,SIGHUP);
+				}
 			movement(GoldBoard,player1Placement,goldMine,myplayer,mysemaphore);
 		}catch(std::runtime_error& e){
 			sem_post(mysemaphore);
@@ -340,6 +355,8 @@ int main(int argc, char* argv[])
 
 			pointer=&goldMine;
 			goldMine.drawMap();
+			//sighup
+			if(GoldBoard->DaemonID!=0)	kill(GoldBoard->DaemonID,SIGHUP);
 			movement(GoldBoard,player2Placement,goldMine,currentPlayer,mysemaphore);
 		}catch(std::runtime_error& e){
 			sem_post(mysemaphore);
@@ -368,12 +385,13 @@ int main(int argc, char* argv[])
 		lastPos=lastManStatus(GoldBoard);
 	}
 	QueueCleaner();
-	if(lastPos)
-	{
+	//if(lastPos)
+	if(GoldBoard->DaemonID!=0)	kill(GoldBoard->DaemonID,SIGHUP);
+	/*{
 		sem_close(mysemaphore);
 		shm_unlink("/APJMEMORY");
 		sem_unlink("APJgoldchase");
-	}
+	}*/
 
 	return 0;
 }

@@ -42,6 +42,7 @@ struct GameBoard
 	int DaemonID;
 };
 GameBoard *GoldBoardR;
+sem_t *mysemaphore;
 unsigned char* clientLocalCopy;
 int sockfd;
 int areaC;
@@ -75,6 +76,50 @@ void Clientother_interrupt(int SigNo)
 			WRITE(sockfd,&(pvec[i].second),sizeof(char));//send the bit
 		}
 }
+if(SigNo==SIGHUP)
+{
+	bool tookLast=false;
+ for (int n=0;n<5;n++)
+	 {
+		if((GoldBoardR->array[n]!=0) &&(GoldBoardR->array[n]!=GoldBoardR->DaemonID))
+		 {tookLast=true;}
+	 }
+ if(tookLast==false)
+ {
+ sem_close(mysemaphore);
+ shm_unlink("/APJMEMORY");
+ sem_unlink("APJgoldchase");
+ exit(0);
+ }
+ unsigned char SockPlayer;
+ SockPlayer=G_SOCKPLR;
+ for(int i=0; i<5; ++i)
+ {
+		if(GoldBoardR->array[i]!=0)
+		{
+			switch(i)
+			{
+			case 0:
+				SockPlayer|=G_PLR0;
+				break;
+			case 1:
+				SockPlayer|=G_PLR1;
+				break;
+			case 2:
+				SockPlayer|=G_PLR2;
+				break;
+			case 3:
+				SockPlayer|=G_PLR3;
+				break;
+			case 4:
+				SockPlayer|=G_PLR4;
+				break;
+			}
+		}
+	}
+		if(sockfd!=0)	WRITE(sockfd,&SockPlayer,sizeof(unsigned char));//send sock
+}
+
 }
 
 
@@ -155,7 +200,7 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
        READ(sockfd,&playerCol,sizeof(int));
        int mapSize=playerRows*playerCol;
        unsigned char tempData;
-       sem_t *mysemaphore;
+//       sem_t *mysemaphore;
 
        mysemaphore= sem_open("/APJgoldchase", O_CREAT|O_EXCL,
 		       S_IROTH| S_IWOTH| S_IRGRP| S_IWGRP| S_IRUSR| S_IWUSR,1);
