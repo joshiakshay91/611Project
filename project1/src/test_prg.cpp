@@ -376,6 +376,9 @@ int main(int argc, char* argv[])
 		}
 		SignalKiller((GoldBoard->array), GoldBoard->DaemonID);
 		lastPos=lastManStatus(GoldBoard);
+		if(GoldBoard->DaemonID!=0)	kill(GoldBoard->DaemonID,SIGHUP);
+		QueueCleaner();
+		return 0;
 	}
 	QueueCleaner();
 	//if(lastPos)
@@ -416,6 +419,7 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 	string msg;
 	char button='m'; //just a garbage
 	goldMine.postNotice("Welcome To The Gold Chase Game This Box is a notice Box");
+	cout<<"DaemonID: "<<GoldBoard->DaemonID<<endl;
 	while(button!='Q'&& (Somewhere))
 	{
 		button=goldMine.getKey();
@@ -576,6 +580,8 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 	sem_wait(mysemaphore);
 	GoldBoard->mapya[playerPlacement]&=~myplayer;
 	SignalKiller((GoldBoard->array),GoldBoard->DaemonID);
+	cout<<"Quiting"<<endl;
+	cout<<"DaemonID: "<<GoldBoard->DaemonID<<endl;
 	sem_post(mysemaphore);
 }
 
