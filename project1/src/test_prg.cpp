@@ -131,15 +131,15 @@ int main(int argc, char* argv[])
 	}catch(...)
 	{}
 	if(Turn==999){
-		sem_t *mysemaphore;
+/*		sem_t *mysemaphore;
 		mysemaphore=sem_open("/APJgoldchase",O_RDWR);
-		if(mysemaphore==SEM_FAILED)
+		if(mysemaphore==SEM_FAILED)*/
 				{
 					client_function();
 				}
-		else
+//		else
 			{
-				sem_close(mysemaphore);
+	//			sem_close(mysemaphore);
 			}
 		//		sleep(10);
 	}
