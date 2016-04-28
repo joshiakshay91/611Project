@@ -279,7 +279,7 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 		GoldBoardR->DaemonID=getpid();
 		DamID=getpid();
     while(1){
-			GoldBoard->DaemonID=getpid();
+			GoldBoardR->DaemonID=getpid();
 			READ(sockfd,&CondiX,sizeof(unsigned char));
 			if(CondiX==0)
 			{
