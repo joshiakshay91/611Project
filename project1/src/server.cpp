@@ -261,7 +261,7 @@ while(1)
 	READ(new_sockfd,&CondiX,sizeof(unsigned char));
 	if(CondiX==0)
 	{
-		CondiX=-1;
+		CondiX=-99;
 		READ(new_sockfd,&positionC,sizeof(short));
 		READ(new_sockfd,&changed,sizeof(char));
 		myLocalCopy[positionC]=changed;
@@ -273,8 +273,7 @@ while(1)
 		}
 //					handle_interrupt(0);
 	}
-
-	if(CondiX & G_SOCKPLR)
+	else if(CondiX & G_SOCKPLR)
 	{
 	  unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
 	  for(int i=0; i<5; ++i) //loop through the player bits

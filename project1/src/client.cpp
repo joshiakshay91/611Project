@@ -295,7 +295,7 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 
 
 //			Clientother_interrupt(SIGHUP);
-if(CondiX & G_SOCKPLR)
+else if(CondiX & G_SOCKPLR)
 {
   unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
   for(int i=0; i<5; ++i) //loop through the player bits
