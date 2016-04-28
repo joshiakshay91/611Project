@@ -91,7 +91,7 @@ if(SigNo==SIGHUP)
  sem_unlink("APJgoldchase");
  exit(0);
  }
- unsigned char SockPlayer=G_SOCKPLR;
+/* unsigned char SockPlayer=G_SOCKPLR;
  unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
  for(int i=0; i<5; ++i) //loop through the player bits
  {
@@ -99,7 +99,7 @@ if(SigNo==SIGHUP)
 
  }
 		if(sockfd!=0)	WRITE(sockfd,&SockPlayer,sizeof(unsigned char));//send sock
-}
+*/}
 
 }
 
@@ -319,7 +319,6 @@ else if(CondiX & G_SOCKPLR)
     //no players are left in the game.  Close and unlink the shared memory.
     //Close and unlink the semaphore.  Then exit the program.
 }
-Clientother_interrupt(SIGHUP);
     }
 		close(sockfd);
 
