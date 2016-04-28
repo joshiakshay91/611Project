@@ -91,10 +91,8 @@ if(SigNo==SIGHUP)
  sem_unlink("APJgoldchase");
  exit(0);
  }
- unsigned char SockPlayer=G_SOCKPLR;
-  SockPlayer|=GoldBoardR->playerss;
-	if(sockfd!=0)	WRITE(sockfd,&SockPlayer,sizeof(unsigned char));//send sock
-/* unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
+/* unsigned char SockPlayer=G_SOCKPLR;
+ unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
  for(int i=0; i<5; ++i) //loop through the player bits
  {
 	 if( GoldBoardR->array[i]!=0)	SockPlayer|=player_bit[i];
@@ -108,6 +106,8 @@ if(SigNo==SIGHUP)
 
 void client_function()
 {
+	int pipefd;
+	const char* pipefifo="/tmp/waiter";
   int rPid=fork();
 	if(rPid<0)
 	{
@@ -115,9 +115,10 @@ void client_function()
 	}
 	if(rPid>0)
 	{
-/*
+
 		//			close(pipefd[1]); //close write, parent only needs read
 		int val=99;
+		pipefd = open(pipefifo, O_RDONLY);
 		while(1){
 			read(pipefd, &val, sizeof(val));
 			if(val==0);
@@ -125,9 +126,9 @@ void client_function()
 				wait(NULL);//zombie
 				return;	//I'm the parent, leave the function
 			}
-		}*/
-    sleep(3);
-    return;
+		}
+  //  sleep(3);
+  //  return;
 	}
 	if(fork()>0)
 	{
@@ -250,10 +251,10 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 	       dataMap[i]=tempData;//shm
 	       clientLocalCopy[i]=tempData;//loc copy
        }
-/*			 for(int i=0;i<5;i++)
+			 for(int i=0;i<5;i++)
 			 {
 				 GoldBoardR->array[i]=0;
-			 }*/
+			 }
        sem_post(mysemaphore);
 
        //	}
@@ -267,10 +268,11 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
        sigaction(SIGHUP, &OtherAction, NULL);// mqueue
        sigaction(SIGTERM, &OtherAction, NULL);
        sigaction(SIGUSR1, &OtherAction, NULL);
-       ////////////////
-    //   int vala=0;
-    //   write(pipefd, &vala, sizeof(vala));
-	//	int readByteN;
+
+			 int vala=0;
+	     pipefd = open(pipefifo, O_WRONLY);
+       write(pipefd, &vala, sizeof(vala));
+       close(pipefd);
 		unsigned char CondiX=-1;
 		short positionC;
 		unsigned char changed;
