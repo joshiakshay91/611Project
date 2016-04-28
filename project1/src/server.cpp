@@ -78,7 +78,7 @@ void Sother_interrupt(int SigNo)
 	bool tookLast=false;
 	 for (int n=0;n<5;n++)
 		 {
-			 if((GoldBoard->array[n]!=0)&& (GoldBoard->array[n]!=GoldBoard->DaemonID))
+			 if((GoldBoard->array[n]!=0) && (GoldBoard->array[n]!=GoldBoard->DaemonID))
 			 {tookLast=true;}
 		 }
 	 if(tookLast==false)
@@ -273,7 +273,7 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
       unsigned char CondiX=-1;
       short positionC;
       unsigned char changed;
-
+			int DamID=getpid();
 
 while(1)
 {
@@ -292,7 +292,99 @@ while(1)
 		}
 //					handle_interrupt(0);
 	}
-}
+	unsigned char temp = CondiX;
+	//temG_SOCKPLR;
+	if(temp & G_SOCKPLR)
+	{
+		unsigned char temp1=CondiX;
+
+				unsigned char temp2=temp1;
+				//temp2&=G_PLR0;
+				if(temp2 & G_PLR0)
+				{
+					if(GoldBoard->array[0]==0)
+					{
+						GoldBoard->array[0]=DamID;
+					}
+
+				}
+				else
+				{
+					if(GoldBoard->array[0]!=0)
+					{
+						GoldBoard->array[0]=0;
+					}
+				}
+				temp2=temp1;
+				//temp2&=G_PLR1;
+				if(temp2 & G_PLR1)
+				{
+					if(GoldBoard->array[1]==0)
+					{
+						GoldBoard->array[1]=DamID;
+					}
+
+				}
+				else
+				{
+					if(GoldBoard->array[1]!=0)
+					{
+						GoldBoard->array[1]=0;
+					}
+				}
+
+				temp2=temp1;
+	//			temp2&=G_PLR2;
+				if(temp2 & G_PLR2)
+				{
+					if(GoldBoard->array[2]==0)
+					{
+						GoldBoard->array[2]=DamID;
+					}
+
+				}
+				else
+				{
+					if(GoldBoard->array[2]!=0)
+					{
+						GoldBoard->array[2]=0;
+					}
+				}
+				temp2=temp1;
+	//			temp2&=G_PLR3;
+				if(temp2 & G_PLR3)
+				{
+					if(GoldBoard->array[3]==0)
+					{
+						GoldBoard->array[3]=DamID;
+					}
+				}
+				else
+				{
+					if(GoldBoard->array[3]!=0)
+					{
+						GoldBoard->array[3]=0;
+					}
+				}
+				temp2=temp1;
+	//			temp2&=G_PLR4;
+				if(temp2 & G_PLR4)
+				{
+					if(GoldBoard->array[4]==0)
+					{
+						GoldBoard->array[4]=DamID;
+					}
+
+				}
+				else
+				{
+					if(GoldBoard->array[4]!=0)
+					{
+						GoldBoard->array[4]=0;
+					}
+				}
+		}
+	}
 
 
 

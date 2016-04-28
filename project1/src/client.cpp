@@ -225,7 +225,7 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
        GoldBoardR->coloumns=playerCol;
        int SockPlrz;
        READ(sockfd,&SockPlrz,sizeof(int));
-       GoldBoardR->DaemonID=getpid();
+      // GoldBoardR->DaemonID=getpid();
        int DamID=getpid();
        int OutByte=SockPlrz;
 
@@ -288,6 +288,7 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 		short positionC;
 		unsigned char changed;
 		GoldBoardR->DaemonID=getpid();
+		DamID=getpid();
     while(1){
 
 			READ(sockfd,&CondiX,sizeof(unsigned char));
@@ -305,6 +306,98 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 					if(GoldBoardR->array[i]!=0)	kill(GoldBoardR->array[i],SIGUSR1);
 				}
 			}
+			unsigned char temp = CondiX;
+			//temG_SOCKPLR;
+			if(temp & G_SOCKPLR)
+			{
+				unsigned char temp1=CondiX;
+
+						unsigned char temp2=temp1;
+						//temp2&=G_PLR0;
+						if(temp2 & G_PLR0)
+						{
+							if(GoldBoardR->array[0]==0)
+							{
+								GoldBoardR->array[0]=DamID;
+							}
+
+						}
+						else
+						{
+							if(GoldBoardR->array[0]!=0)
+							{
+								GoldBoardR->array[0]=0;
+							}
+						}
+						temp2=temp1;
+						//temp2&=G_PLR1;
+						if(temp2 & G_PLR1)
+						{
+							if(GoldBoardR->array[1]==0)
+							{
+								GoldBoardR->array[1]=DamID;
+							}
+
+						}
+						else
+						{
+							if(GoldBoardR->array[1]!=0)
+							{
+								GoldBoardR->array[1]=0;
+							}
+						}
+
+						temp2=temp1;
+			//			temp2&=G_PLR2;
+						if(temp2 & G_PLR2)
+						{
+							if(GoldBoardR->array[2]==0)
+							{
+								GoldBoardR->array[2]=DamID;
+							}
+
+						}
+						else
+						{
+							if(GoldBoardR->array[2]!=0)
+							{
+								GoldBoardR->array[2]=0;
+							}
+						}
+						temp2=temp1;
+			//			temp2&=G_PLR3;
+						if(temp2 & G_PLR3)
+						{
+							if(GoldBoardR->array[3]==0)
+							{
+								GoldBoardR->array[3]=DamID;
+							}
+						}
+						else
+						{
+							if(GoldBoardR->array[3]!=0)
+							{
+								GoldBoardR->array[3]=0;
+							}
+						}
+						temp2=temp1;
+			//			temp2&=G_PLR4;
+						if(temp2 & G_PLR4)
+						{
+							if(GoldBoardR->array[4]==0)
+							{
+								GoldBoardR->array[4]=DamID;
+							}
+
+						}
+						else
+						{
+							if(GoldBoardR->array[4]!=0)
+							{
+								GoldBoardR->array[4]=0;
+							}
+						}
+				}
     }
 		close(sockfd);
 
