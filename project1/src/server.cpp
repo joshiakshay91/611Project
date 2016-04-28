@@ -295,7 +295,6 @@ while(1)
 	  sem_unlink("APJgoldchase");
 	  exit(0);
 	  }
-			Sother_interrupt(SIGHUP);
 	    //no players are left in the game.  Close and unlink the shared memory.
 	    //Close and unlink the semaphore.  Then exit the program.
 	}

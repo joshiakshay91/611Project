@@ -81,7 +81,7 @@ if(SigNo==SIGHUP)
 	bool tookLast=false;
  for (int n=0;n<5;n++)
 	 {
-		if((GoldBoardR->array[n]!=0) &&(GoldBoardR->array[n]!=GoldBoardR->DaemonID))
+		if((GoldBoardR->array[n]!=0))
 		 {tookLast=true;}
 	 }
  if(tookLast==false)
@@ -315,9 +315,6 @@ if(CondiX & G_SOCKPLR)
     //no players are left in the game.  Close and unlink the shared memory.
     //Close and unlink the semaphore.  Then exit the program.
 }
-
-			Clientother_interrupt(SIGHUP);
-
     }
 		close(sockfd);
 
