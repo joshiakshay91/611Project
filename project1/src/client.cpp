@@ -306,6 +306,47 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 					if(GoldBoardR->array[i]!=0)	kill(GoldBoardR->array[i],SIGUSR1);
 				}
 			}
+
+
+
+
+if(CondiX & G_SOCKPLR)
+{
+  unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
+  for(int i=0; i<5; ++i) //loop through the player bits
+  {
+    // If player bit is on and shared memory ID is zero,
+    // a player (from other computer) has joined:
+    if(CondiX & player_bit[i] && GoldBoardR->array[i]==0)	GoldBoardR->array[i]=DamID;
+
+    //If player bit is off and shared memory ID is not zero,
+    //remote player has quit:
+    else if(!(CondiX & player_bit[i]) && GoldBoardR->array[i]!=0)	GoldBoardR->array[i]=0;
+
+  }
+  if(CondiX==G_SOCKPLR)
+	{
+  sem_close(mysemaphore);
+  shm_unlink("/APJMEMORY");
+  sem_unlink("APJgoldchase");
+  exit(0);
+  }
+    //no players are left in the game.  Close and unlink the shared memory.
+    //Close and unlink the semaphore.  Then exit the program.
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 		close(sockfd);
 
