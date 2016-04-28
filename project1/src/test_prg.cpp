@@ -376,8 +376,8 @@ int main(int argc, char* argv[])
 		}
 		SignalKiller((GoldBoard->array), GoldBoard->DaemonID);
 		lastPos=lastManStatus(GoldBoard);
-		if(GoldBoard->DaemonID!=0)	kill(GoldBoard->DaemonID,SIGHUP);
 		QueueCleaner();
+		if(GoldBoard->DaemonID!=0)	kill(GoldBoard->DaemonID,SIGHUP);
 		return 0;
 	}
 	QueueCleaner();
