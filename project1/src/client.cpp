@@ -342,7 +342,7 @@ if(CondiX & G_SOCKPLR)
 
 
 
-
+Clientother_interrupt(SIGHUP);
 
 
 

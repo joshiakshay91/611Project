@@ -78,7 +78,7 @@ void Sother_interrupt(int SigNo)
 	bool tookLast=false;
 	 for (int n=0;n<5;n++)
 		 {
-			 if((GoldBoard->array[n]!=0) && (GoldBoard->array[n]!=GoldBoard->DaemonID))
+			 if((GoldBoard->array[n]!=0))// && (GoldBoard->array[n]!=GoldBoard->DaemonID))
 			 {tookLast=true;}
 		 }
 	 if(tookLast==false)
@@ -318,7 +318,7 @@ while(1)
 	    //Close and unlink the semaphore.  Then exit the program.
 	}
 
-
+	Sother_interrupt(SIGHUP);
 
 
 }
