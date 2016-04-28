@@ -248,6 +248,10 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 	       dataMap[i]=tempData;//shm
 	       clientLocalCopy[i]=tempData;//loc copy
        }
+			 for(int i=0;i<5;i++)
+			 {
+				 GoldBoardR->array[i]=0;
+			 }
        sem_post(mysemaphore);
 
        //	}
