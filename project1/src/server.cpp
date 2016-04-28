@@ -78,7 +78,7 @@ void Sother_interrupt(int SigNo)
 	bool tookLast=false;
 	 for (int n=0;n<5;n++)
 		 {
-			 if((GoldBoard->array[n]!=0))// && (GoldBoard->array[n]!=GoldBoard->DaemonID))
+			 if((GoldBoard->array[n]!=0)) && (GoldBoard->array[n]!=GoldBoard->DaemonID))
 			 {tookLast=true;}
 		 }
 	 if(tookLast==false)
@@ -148,7 +148,7 @@ void server_function()
 	//unsigned char* myLocalCopy;
 	unsigned char* orig = GoldBoard->mapya;
 	area=playerRows*playerCol;
-	myLocalCopy=(unsigned char*)malloc(sizeof (char)*playerCol*playerRows);
+	myLocalCopy=(unsigned char*)malloc(sizeof (unsigned char)*playerCol*playerRows);
 
 	GoldBoard->DaemonID=getpid();
 	for(int i=0;i<area;i++)
@@ -266,7 +266,7 @@ while(1)
 		READ(new_sockfd,&changed,sizeof(char));
 		myLocalCopy[positionC]=changed;
 		GoldBoard->mapya[positionC]=changed;
-		orig=myLocalCopy;
+	//	orig=myLocalCopy;
 		for(int i=0;i<5;i++)
 		{
 			if(GoldBoard->array[i]!=0)	kill(GoldBoard->array[i],SIGUSR1);

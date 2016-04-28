@@ -81,7 +81,7 @@ if(SigNo==SIGHUP)
 	bool tookLast=false;
  for (int n=0;n<5;n++)
 	 {
-		if((GoldBoardR->array[n]!=0))
+		if((GoldBoardR->array[n]!=0)&&(GoldBoardR->array[n]!=GoldBoardR->DaemonID))
 		 {tookLast=true;}
 	 }
  if(tookLast==false)
@@ -204,7 +204,7 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 		       PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
 
        unsigned char *dataMap=GoldBoardR->mapya;
-       clientLocalCopy=(unsigned char*)malloc(sizeof (char)*playerCol*playerRows);
+       clientLocalCopy=(unsigned char*)malloc(sizeof (unsigned char)*playerCol*playerRows);
        GoldBoardR->rows=playerRows;
        GoldBoardR->coloumns=playerCol;
     //   int SockPlrz;
@@ -251,10 +251,10 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 	       dataMap[i]=tempData;//shm
 	       clientLocalCopy[i]=tempData;//loc copy
        }
-			 for(int i=0;i<5;i++)
+/*			 for(int i=0;i<5;i++)
 			 {
 				 GoldBoardR->array[i]=0;
-			 }
+			 }*/
        sem_post(mysemaphore);
 
        //	}
@@ -279,7 +279,7 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 		GoldBoardR->DaemonID=getpid();
 		DamID=getpid();
     while(1){
-			GoldBoardR->DaemonID=getpid();
+//			GoldBoardR->DaemonID=getpid();
 			READ(sockfd,&CondiX,sizeof(unsigned char));
 			if(CondiX==0)
 			{
