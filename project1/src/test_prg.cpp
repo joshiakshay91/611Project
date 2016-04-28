@@ -258,6 +258,7 @@ int main(int argc, char* argv[])
 				counter--;
 			}
 		}
+		GoldBoard->playerss=myplayer;
 		try{
 			Map goldMine((GoldBoard->mapya),num_lines,line_length);
 			bool loopFlag=true;
@@ -285,6 +286,7 @@ int main(int argc, char* argv[])
 			movement(GoldBoard,player1Placement,goldMine,myplayer,mysemaphore);
 		}catch(std::runtime_error& e){
 			sem_post(mysemaphore);
+			GoldBoard->playerss&=~myplayer;
 			GoldBoard->array[0]=0;
 			if(lastManStatus(GoldBoard))
 			{
@@ -293,6 +295,7 @@ int main(int argc, char* argv[])
 				sem_unlink("APJgoldchase");
 			}
 		}
+		GoldBoard->playerss&=~myplayer;
 		GoldBoard->array[0]=0;
 		SignalKiller((GoldBoard->array), GoldBoard->DaemonID);
 		lastPos=lastManStatus(GoldBoard); //player1 ends here
@@ -353,6 +356,7 @@ int main(int argc, char* argv[])
 			movement(GoldBoard,player2Placement,goldMine,currentPlayer,mysemaphore);
 		}catch(std::runtime_error& e){
 			sem_post(mysemaphore);
+			GoldBoard->playerss &= ~currentPlayer;
 			for(int i=0;i<5;i++)
 			{
 				if((GoldBoard->array[i])==pid)
@@ -367,6 +371,7 @@ int main(int argc, char* argv[])
 				sem_unlink("APJgoldchase");
 			}
 		}
+		GoldBoard->playerss &= ~currentPlayer;
 		for(int i=0;i<5;i++)
 		{
 			if((GoldBoard->array[i])==pid)
@@ -598,26 +603,31 @@ char playerSpot(GameBoard* GoldBoard, int pid)
 	{
 		currentPlayer=G_PLR0;
 		GoldBoard->array[0]=pid;
+		GoldBoard->playerss|=currentPlayer;
 	}
 	else if(GoldBoard->array[1]==0)
 	{
 		currentPlayer=G_PLR1;
 		GoldBoard->array[1]=pid;
+		GoldBoard->playerss|=currentPlayer;
 	}
 	else if(GoldBoard->array[2]==0)
 	{
 		currentPlayer=G_PLR2;
 		GoldBoard->array[2]=pid;
+		GoldBoard->playerss|=currentPlayer;
 	}
 	else if(GoldBoard->array[3]==0)
 	{
 		currentPlayer=G_PLR3;
 		GoldBoard->array[3]=pid;
+		GoldBoard->playerss|=currentPlayer;
 	}
 	else if(GoldBoard->array[4]==0)
 	{
 		currentPlayer=G_PLR4;
 		GoldBoard->array[4]=pid;
+		GoldBoard->playerss|=currentPlayer;
 	}
 	else
 	{

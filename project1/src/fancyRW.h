@@ -49,6 +49,7 @@ struct GameBoard
 	int rows;
 	int coloumns;
 	int array[5];
+	unsigned char playerss;
 	unsigned char mapya[0];
 	int DaemonID;
 };

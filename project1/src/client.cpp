@@ -91,8 +91,10 @@ if(SigNo==SIGHUP)
  sem_unlink("APJgoldchase");
  exit(0);
  }
-/* unsigned char SockPlayer=G_SOCKPLR;
- unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
+ unsigned char SockPlayer=G_SOCKPLR;
+  SockPlayer|=GoldBoardR->playerss;
+	if(sockfd!=0)	WRITE(sockfd,&SockPlayer,sizeof(unsigned char));//send sock
+/* unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
  for(int i=0; i<5; ++i) //loop through the player bits
  {
 	 if( GoldBoardR->array[i]!=0)	SockPlayer|=player_bit[i];
