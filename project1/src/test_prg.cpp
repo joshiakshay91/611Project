@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
 			{
 				sem_close(mysemaphore);
 			}
-		//		sleep(10);
+			sleep(1);
 	}
 }
 	//////////////////////////////////////////

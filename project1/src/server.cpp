@@ -88,7 +88,7 @@ void Sother_interrupt(int SigNo)
 	 sem_unlink("APJgoldchase");
 	 exit(0);
 	 }
-/*	 unsigned char SockPlayer=G_SOCKPLR;
+	 unsigned char SockPlayer=G_SOCKPLR;
 	 unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
 	 for(int i=0; i<5; ++i) //loop through the player bits
 	 {
@@ -96,7 +96,7 @@ void Sother_interrupt(int SigNo)
 
 	 }
 		if(new_sockfd!=0)	WRITE(new_sockfd,&SockPlayer,sizeof(unsigned char));//send sock
-	*/}
+	}
 
 }
 
