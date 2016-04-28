@@ -91,32 +91,13 @@ if(SigNo==SIGHUP)
  sem_unlink("APJgoldchase");
  exit(0);
  }
- unsigned char SockPlayer;
- SockPlayer=G_SOCKPLR;
- for(int i=0; i<5; ++i)
+ unsigned char SockPlayer=G_SOCKPLR;
+ unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
+ for(int i=0; i<5; ++i) //loop through the player bits
  {
-		if(GoldBoardR->array[i]!=0)
-		{
-			switch(i)
-			{
-			case 0:
-				SockPlayer|=G_PLR0;
-				break;
-			case 1:
-				SockPlayer|=G_PLR1;
-				break;
-			case 2:
-				SockPlayer|=G_PLR2;
-				break;
-			case 3:
-				SockPlayer|=G_PLR3;
-				break;
-			case 4:
-				SockPlayer|=G_PLR4;
-				break;
-			}
-		}
-	}
+	 if( GoldBoardR->array[i]!=0)	SockPlayer|=player_bit[i];
+
+ }
 		if(sockfd!=0)	WRITE(sockfd,&SockPlayer,sizeof(unsigned char));//send sock
 }
 
@@ -309,7 +290,7 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 
 
 
-
+//			Clientother_interrupt(SIGHUP);
 if(CondiX & G_SOCKPLR)
 {
   unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
@@ -334,16 +315,6 @@ if(CondiX & G_SOCKPLR)
     //no players are left in the game.  Close and unlink the shared memory.
     //Close and unlink the semaphore.  Then exit the program.
 }
-
-
-
-
-
-
-
-
-Clientother_interrupt(SIGHUP);
-
 
 
 
