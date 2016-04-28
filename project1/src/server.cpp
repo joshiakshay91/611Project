@@ -257,6 +257,7 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
 			Sother_interrupt(SIGHUP);
 while(1)
 {
+	GoldBoard->DaemonID=getpid();
 	READ(new_sockfd,&CondiX,sizeof(unsigned char));
 	if(CondiX==0)
 	{
