@@ -304,19 +304,11 @@ else if(CondiX & G_SOCKPLR)
   {
     // If player bit is on and shared memory ID is zero,
     // a player (from other computer) has joined:
-    if(CondiX & player_bit[i] && GoldBoardR->array[i]==0)
-			{
-				GoldBoardR->array[i]=DamID;
-				GoldBoardR->playerss|=player_bit[i];
-			}
+    if(CondiX & player_bit[i] && GoldBoardR->array[i]==0)	GoldBoardR->array[i]=DamID;
 
     //If player bit is off and shared memory ID is not zero,
     //remote player has quit:
-    else if(!(CondiX & player_bit[i]) && GoldBoardR->array[i]!=0)
-		{
-			GoldBoardR->array[i]=0;
-			GoldBoardR->playerss&=~player_bit[i];
-		}
+    else if(!(CondiX & player_bit[i]) && GoldBoardR->array[i]!=0)	GoldBoardR->array[i]=0;
 
   }
   if(CondiX==G_SOCKPLR)

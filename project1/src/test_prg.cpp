@@ -599,31 +599,31 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 char playerSpot(GameBoard* GoldBoard, int pid)
 {
 	char currentPlayer;
-	if(!(GoldBoard->playerss & G_PLR0))
+	if(GoldBoard->array[0]==0)
 	{
 		currentPlayer=G_PLR0;
 		GoldBoard->array[0]=pid;
 		GoldBoard->playerss|=currentPlayer;
 	}
-	else if(!(GoldBoard->playerss & G_PLR1))
+	else if(GoldBoard->array[1]==0)
 	{
 		currentPlayer=G_PLR1;
 		GoldBoard->array[1]=pid;
 		GoldBoard->playerss|=currentPlayer;
 	}
-	else if(!(GoldBoard->playerss & G_PLR2))
+	else if(GoldBoard->array[2]==0)
 	{
 		currentPlayer=G_PLR2;
 		GoldBoard->array[2]=pid;
 		GoldBoard->playerss|=currentPlayer;
 	}
-	else if(!(GoldBoard->playerss & G_PLR3))
+	else if(GoldBoard->array[3]==0)
 	{
 		currentPlayer=G_PLR3;
 		GoldBoard->array[3]=pid;
 		GoldBoard->playerss|=currentPlayer;
 	}
-	else if(!(GoldBoard->playerss & G_PLR4))
+	else if(GoldBoard->array[4]==0)
 	{
 		currentPlayer=G_PLR4;
 		GoldBoard->array[4]=pid;
