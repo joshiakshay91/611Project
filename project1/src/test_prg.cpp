@@ -378,6 +378,11 @@ int main(int argc, char* argv[])
 		lastPos=lastManStatus(GoldBoard);
 		QueueCleaner();
 		if(GoldBoard->DaemonID!=0)	kill(GoldBoard->DaemonID,SIGHUP);
+		if(lastPos){
+				sem_close(mysemaphore);
+				shm_unlink("/APJMEMORY");
+				sem_unlink("APJgoldchase");
+			}
 		return 0;
 	}
 	QueueCleaner();
