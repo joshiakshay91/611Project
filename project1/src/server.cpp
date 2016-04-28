@@ -238,11 +238,11 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
 	      //	exit(1);
       }
       int InitNum=0;
-			int SockPlrz=0;
+		//	int SockPlrz=0;
       WRITE(new_sockfd,&InitNum,sizeof(int));
       WRITE(new_sockfd,&playerRows,sizeof(int));
       WRITE(new_sockfd,&playerCol,sizeof(int));
-			for(int z=0;z<5;z++)
+		/*	for(int z=0;z<5;z++)
 			{
 				if(GoldBoard->array[z]!=0)
 				{
@@ -262,7 +262,7 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
 					SockPlrz|=byter;
 				}
 			}
-			WRITE(new_sockfd,&SockPlrz,sizeof(int));
+			WRITE(new_sockfd,&SockPlrz,sizeof(int));*/
       unsigned char *senderCopy=myLocalCopy;
       for(int J=0;J<(playerCol*playerRows);++J)
       {

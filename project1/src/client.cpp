@@ -223,13 +223,13 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
        clientLocalCopy=(unsigned char*)malloc(sizeof (char)*playerCol*playerRows);
        GoldBoardR->rows=playerRows;
        GoldBoardR->coloumns=playerCol;
-       int SockPlrz;
-       READ(sockfd,&SockPlrz,sizeof(int));
+    //   int SockPlrz;
+    //   READ(sockfd,&SockPlrz,sizeof(int));
       // GoldBoardR->DaemonID=getpid();
        int DamID=getpid();
-       int OutByte=SockPlrz;
+      // int OutByte=SockPlrz;
 
-       for(int z=0;z<5;z++)
+    /*   for(int z=0;z<5;z++)
  			{
  				if(z==0)
         {
@@ -257,7 +257,7 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
           if(OutByte==G_PLR4) GoldBoardR->array[z]=DamID;
         }
         OutByte=SockPlrz;
- 			}
+ 			}*/
 
        //GoldBoardR->array[0]=1;////////////////////////////////////////////////////
        //GoldBoardR->DaemonID=getpid();
