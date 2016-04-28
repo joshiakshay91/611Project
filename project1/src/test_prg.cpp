@@ -423,6 +423,7 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 	cout<<"DaemonID: "<<GoldBoard->DaemonID<<endl;
 	while(button!='Q'&& (Somewhere))
 	{
+			cerr<<"DaemonID: "<<GoldBoard->DaemonID<<endl;
 		button=goldMine.getKey();
 		if(button=='h')
 		{
