@@ -319,6 +319,7 @@ else if(CondiX & G_SOCKPLR)
     //no players are left in the game.  Close and unlink the shared memory.
     //Close and unlink the semaphore.  Then exit the program.
 }
+Clientother_interrupt(int SIGHUP);
     }
 		close(sockfd);
 

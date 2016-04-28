@@ -298,7 +298,7 @@ while(1)
 	    //Close and unlink the semaphore.  Then exit the program.
 	}
 
-
+			Sother_interrupt(SIGHUP);
 
 }
 
