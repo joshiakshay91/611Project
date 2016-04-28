@@ -316,7 +316,7 @@ if(CondiX & G_SOCKPLR)
     //Close and unlink the semaphore.  Then exit the program.
 }
 
-
+			Clientother_interrupt(SIGHUP);
 
     }
 		close(sockfd);
