@@ -75,6 +75,13 @@ void Sother_interrupt(int SigNo)
 	}
 	if(SigNo==SIGHUP)
 	{
+		unsigned char SockPlayer=G_SOCKPLR;
+		unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
+		for(int i=0; i<5; ++i) //loop through the player bits
+		{
+		 if( GoldBoard->array[i]!=0)	SockPlayer|=player_bit[i];
+		}
+		 if(new_sockfd!=0)	WRITE(new_sockfd,&SockPlayer,sizeof(unsigned char));//send sock
 	bool tookLast=false;
 	 for (int n=0;n<5;n++)
 		 {
@@ -83,18 +90,14 @@ void Sother_interrupt(int SigNo)
 		 }
 	 if(tookLast==false)
 	 {
-	 sem_close(mysemaphore1);
+		 SockPlayer=G_SOCKPLR;
+		 if(new_sockfd!=0)	WRITE(new_sockfd,&SockPlayer,sizeof(unsigned char));
+/*	 sem_close(mysemaphore1);
 	 shm_unlink("/APJMEMORY");
 	 sem_unlink("APJgoldchase");
-	 exit(0);
+	 exit(0);*/
  }
-	 unsigned char SockPlayer=G_SOCKPLR;
-	 unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
-	 for(int i=0; i<5; ++i) //loop through the player bits
-	 {
-		if( GoldBoard->array[i]!=0)	SockPlayer|=player_bit[i];
-	 }
-		if(new_sockfd!=0)	WRITE(new_sockfd,&SockPlayer,sizeof(unsigned char));//send sock
+
 	}
 
 }
@@ -289,6 +292,8 @@ while(1)
 	  }
 	  if(CondiX==G_SOCKPLR)
 		{
+			unsigned char SockPlayer=G_SOCKPLR;
+			if(sockfd!=0)	WRITE(new_sockfd,&SockPlayer,sizeof(unsigned char));
 	  sem_close(mysemaphore1);
 	  shm_unlink("/APJMEMORY");
 	  sem_unlink("APJgoldchase");

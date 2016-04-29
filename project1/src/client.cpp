@@ -94,10 +94,12 @@ if(SigNo==SIGHUP)
 	 }
  if(tookLast==false)
  {
- sem_close(mysemaphore);
+	 unsigned char SockPlayer=G_SOCKPLR;
+	 if(sockfd!=0)	WRITE(sockfd,&SockPlayer,sizeof(unsigned char));
+/* sem_close(mysemaphore);
  shm_unlink("/APJMEMORY");
  sem_unlink("APJgoldchase");
- exit(0);
+ exit(0);*/
  }
 
 }
@@ -316,6 +318,8 @@ else if(CondiX & G_SOCKPLR)
   }
   if(CondiX==G_SOCKPLR)
 	{
+		unsigned char SockPlayer=G_SOCKPLR;
+		if(sockfd!=0)	WRITE(sockfd,&SockPlayer,sizeof(unsigned char));
   sem_close(mysemaphore);
   shm_unlink("/APJMEMORY");
   sem_unlink("APJgoldchase");
