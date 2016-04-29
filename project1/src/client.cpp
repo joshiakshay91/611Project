@@ -78,10 +78,18 @@ void Clientother_interrupt(int SigNo)
 }
 if(SigNo==SIGHUP)
 {
+	unsigned char SockPlayer=G_SOCKPLR;
+  unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
+  for(int i=0; i<5; ++i) //loop through the player bits
+  {
+ 	 if( GoldBoardR->array[i]!=0)	SockPlayer|=player_bit[i];
+
+  }
+ 		if(sockfd!=0)	WRITE(sockfd,&SockPlayer,sizeof(unsigned char));//send sock
 	bool tookLast=false;
  for (int n=0;n<5;n++)
 	 {
-		if((GoldBoardR->array[n]!=0)&&(GoldBoardR->array[n]!=GoldBoardR->DaemonID))
+		if((GoldBoardR->array[n]!=0))//&&(GoldBoardR->array[n]!=GoldBoardR->DaemonID))
 		 {tookLast=true;}
 	 }
  if(tookLast==false)
@@ -91,14 +99,7 @@ if(SigNo==SIGHUP)
  sem_unlink("APJgoldchase");
  exit(0);
  }
- unsigned char SockPlayer=G_SOCKPLR;
- unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
- for(int i=0; i<5; ++i) //loop through the player bits
- {
-	 if( GoldBoardR->array[i]!=0)	SockPlayer|=player_bit[i];
 
- }
-		if(sockfd!=0)	WRITE(sockfd,&SockPlayer,sizeof(unsigned char));//send sock
 }
 
 }
