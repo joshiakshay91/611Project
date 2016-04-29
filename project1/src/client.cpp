@@ -89,7 +89,7 @@ if(SigNo==SIGHUP)
 	bool tookLast=false;
  for (int n=0;n<5;n++)
 	 {
-		if((GoldBoardR->array[n]!=0))//&&(GoldBoardR->array[n]!=GoldBoardR->DaemonID))
+		if((GoldBoardR->array[n]!=0) &&(GoldBoardR->array[n]!=GoldBoardR->DaemonID))
 		 {tookLast=true;}
 	 }
  if(tookLast==false)
