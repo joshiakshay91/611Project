@@ -92,10 +92,13 @@ void Sother_interrupt(int SigNo)
 	 {
 		 SockPlayer=G_SOCKPLR;
 		 if(new_sockfd!=0)	WRITE(new_sockfd,&SockPlayer,sizeof(unsigned char));
-/*	 sem_close(mysemaphore1);
+		 else
+		 {
+	 sem_close(mysemaphore1);
 	 shm_unlink("/APJMEMORY");
 	 sem_unlink("APJgoldchase");
-	 exit(0);*/
+	 exit(0);
+ 	}
  }
 
 	}
