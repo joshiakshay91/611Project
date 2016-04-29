@@ -85,20 +85,19 @@ void Sother_interrupt(int SigNo)
 	bool tookLast=false;
 	 for (int n=0;n<5;n++)
 		 {
-			 if((GoldBoard->array[n]!=0) && (GoldBoard->array[n]!=GoldBoard->DaemonID))
+			 if((GoldBoard->array[n]!=0)) //&& (GoldBoard->array[n]!=GoldBoard->DaemonID))
 			 {tookLast=true;}
 		 }
 	 if(tookLast==false)
 	 {
 		 SockPlayer=G_SOCKPLR;
 		 if(new_sockfd!=0)	WRITE(new_sockfd,&SockPlayer,sizeof(unsigned char));
-		 else
-		 {
+		 close(new_sockfd);
 	 sem_close(mysemaphore1);
 	 shm_unlink("/APJMEMORY");
 	 sem_unlink("APJgoldchase");
 	 exit(0);
- 	}
+
  }
 
 	}
@@ -296,7 +295,8 @@ while(1)
 	  if(CondiX==G_SOCKPLR)
 		{
 			unsigned char SockPlayer=G_SOCKPLR;
-			if(sockfd!=0)	WRITE(new_sockfd,&SockPlayer,sizeof(unsigned char));
+			if(new_sockfd!=0)	WRITE(new_sockfd,&SockPlayer,sizeof(unsigned char));
+			close(new_sockfd);
 	  sem_close(mysemaphore1);
 	  shm_unlink("/APJMEMORY");
 	  sem_unlink("APJgoldchase");
