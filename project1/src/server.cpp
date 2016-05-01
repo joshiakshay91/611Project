@@ -295,7 +295,9 @@ while(1)
 	  if(CondiX==G_SOCKPLR)
 		{
 			unsigned char SockPlayer=G_SOCKPLR;
-			if(new_sockfd!=0)	WRITE(new_sockfd,&SockPlayer,sizeof(unsigned char));
+			int ret=400;
+			while(ret>=0)
+					{ret=	WRITE(new_sockfd,&SockPlayer,sizeof(unsigned char));}
 			close(new_sockfd);
 	  sem_close(mysemaphore1);
 	  shm_unlink("/APJMEMORY");
