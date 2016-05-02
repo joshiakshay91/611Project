@@ -27,7 +27,7 @@ using namespace std;
 //the GameBoard struct
 	//sem_t *mysemaphore; //semaphore
 int pid;
-int DAM_ID=0;
+//int DAM_ID=0;
 bool Somewhere=true;//for handling interrupt
 bool ColdFlag=true;//for handling interrupt when getting input
 Map* pointer=NULL;//Global Map Pointer
@@ -53,7 +53,7 @@ void other_interrupt(int numSig)
 		cout<<"Sorry, I have been signaled that,It is too cold!!!"<<endl;
 		exit(0);
 	}
-	if(numSig!=SIGHUP)	Somewhere=false;
+	Somewhere=false;
 }
 
 mqd_t readqueue_fd;//file descriptor
@@ -415,8 +415,9 @@ bool lastManStatus(GameBoard* GoldBoard)
 void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 		char myplayer, sem_t* mysemaphore)
 {
+	usleep(1500);
 	kill(GoldBoard->DaemonID,SIGHUP);
-	DAM_ID=GoldBoard->DaemonID;
+	//DAM_ID=GoldBoard->DaemonID;
 	bool GoldFlag=false,Flag=false;
 	int MapCol=GoldBoard->coloumns;
 	int MapRow=GoldBoard->rows;
