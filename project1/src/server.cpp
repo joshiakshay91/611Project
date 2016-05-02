@@ -32,15 +32,6 @@
 using namespace std;
 #include "fancyRW.h"
 
-
-/*struct GameBoard
-{
-	int rows;
-	int coloumns;
-	int array[5];
-	unsigned char mapya[0];
-	int DaemonID;
-};*/
 	GameBoard* GoldBoard;
   unsigned char* myLocalCopy;
   int area;
@@ -227,27 +218,7 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
       WRITE(new_sockfd,&InitNum,sizeof(int));
       WRITE(new_sockfd,&playerRows,sizeof(int));
       WRITE(new_sockfd,&playerCol,sizeof(int));
-		/*	for(int z=0;z<5;z++)
-			{
-				if(GoldBoard->array[z]!=0)
-				{
-					int byter=0;
-					switch (z) {
-						case 0:	byter=G_PLR0;
-										break;
-						case 1: byter=G_PLR1;
-										break;
-						case 2:	byter=G_PLR2;
-										break;
-						case 3: byter=G_PLR3;
-										break;
-						case 4: byter=G_PLR4;
-										break;
-					}
-					SockPlrz|=byter;
-				}
-			}
-			WRITE(new_sockfd,&SockPlrz,sizeof(int));*/
+
       unsigned char *senderCopy=myLocalCopy;
       for(int J=0;J<(playerCol*playerRows);++J)
       {

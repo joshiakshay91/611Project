@@ -25,7 +25,7 @@ Date: 13 March 2016
 using namespace std;
 #include "fancyRW.h"
 //the GameBoard struct
-	//sem_t *mysemaphore; //semaphore
+//sem_t *mysemaphore; //semaphore
 int pid;
 int DAM_ID=0;
 bool Somewhere=true;//for handling interrupt
@@ -38,6 +38,7 @@ void QueueSetup(int player);//function to setup mqueue
 void QueueCleaner();
 void broadcaster(string msg,GameBoard* GoldBoard);//broadcasts message
 string senderI;//username
+
 void SignalKiller(int PlayerArray[], int);
 void handle_interrupt(int)
 {
@@ -46,14 +47,25 @@ void handle_interrupt(int)
 		pointer->drawMap();
 	}
 }
-void other_interrupt(int)
+void other_interrupt(int SomeSig, siginfo_t *siginfo,void* context)
 {
 	if(ColdFlag)
 	{
 		cout<<"Sorry, I have been signaled that,It is too cold!!!"<<endl;
 		exit(0);
 	}
-	Somewhere=false;
+	if(SomeSig==SIGINT|| SomeSig==SIGTERM)
+	{
+		Somewhere=false;
+	}
+	if(SomeSig==SIGHUP)
+	{
+		int displ=siginfo->si_pid;
+		if(displ!=getpid())
+		{
+			Somewhere=false;
+		}
+	}
 }
 
 mqd_t readqueue_fd;//file descriptor
@@ -138,9 +150,10 @@ int main(int argc, char* argv[])
 }
 	//////////////////////////////////////////
 	struct sigaction OtherAction;//handle the signals
-	OtherAction.sa_handler=other_interrupt;
-	sigemptyset(&OtherAction.sa_mask);
-	OtherAction.sa_flags=0;
+	OtherAction.sa_sigaction=other_interrupt;
+	//OtherAction.sa_handler=other_interrupt;
+	//sigemptyset(&OtherAction.sa_mask);
+	OtherAction.sa_flags|=SA_SIGINFO;
 	OtherAction.sa_restorer=NULL;
 	sigaction(SIGINT, &OtherAction, NULL);
 	sigaction(SIGHUP, &OtherAction, NULL);
@@ -587,6 +600,10 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 	sem_wait(mysemaphore);
 	GoldBoard->mapya[playerPlacement]&=~myplayer;
 	SignalKiller((GoldBoard->array),GoldBoard->DaemonID);
+	if(!Somewhere)
+	{
+		std::cerr << "Somewhere gone wrong" << std::endl;
+	}
 	cout<<"Quiting"<<endl;
 	cout<<"DaemonID: "<<GoldBoard->DaemonID<<endl;
 	sem_post(mysemaphore);
