@@ -275,7 +275,7 @@ else if(CondiX & G_SOCKPLR)
   if(CondiX==G_SOCKPLR)
 	{
 		unsigned char SockPlayer=G_SOCKPLR;
-		if(sockfd!=0)	WRITE(sockfd,&SockPlayer,sizeof(unsigned char));
+		WRITE(sockfd,&SockPlayer,sizeof(unsigned char));
 		close(sockfd);
   sem_close(mysemaphore);
   shm_unlink("/APJMEMORY");

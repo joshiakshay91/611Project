@@ -145,7 +145,7 @@ void server_function()
 	unsigned char* orig = GoldBoard->mapya;
 	area=playerRows*playerCol;
 	myLocalCopy=(unsigned char*)malloc(sizeof (unsigned char)*playerCol*playerRows);
-	
+
 	GoldBoard->DaemonID=getpid();
 	for(int i=0;i<area;i++)
 	{
@@ -287,9 +287,8 @@ while(1)
 		{
 			unsigned char SockPlayer=G_SOCKPLR;
 			int ret=400;
-			while(ret>=0)
-					{ret=	WRITE(new_sockfd,&SockPlayer,sizeof(unsigned char));}
-			close(new_sockfd);
+		ret=	WRITE(new_sockfd,&SockPlayer,sizeof(unsigned char));
+		close(new_sockfd);
 	  sem_close(mysemaphore1);
 	  shm_unlink("/APJMEMORY");
 	  sem_unlink("APJgoldchase");
