@@ -25,7 +25,7 @@ Date: 13 March 2016
 using namespace std;
 #include "fancyRW.h"
 //the GameBoard struct
-//sem_t *mysemaphore; //semaphore
+	//sem_t *mysemaphore; //semaphore
 int pid;
 int DAM_ID=0;
 bool Somewhere=true;//for handling interrupt
@@ -38,7 +38,6 @@ void QueueSetup(int player);//function to setup mqueue
 void QueueCleaner();
 void broadcaster(string msg,GameBoard* GoldBoard);//broadcasts message
 string senderI;//username
-
 void SignalKiller(int PlayerArray[], int);
 void handle_interrupt(int)
 {
