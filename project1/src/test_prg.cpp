@@ -60,11 +60,11 @@ void other_interrupt(int SomeSig, siginfo_t *siginfo,void* context)
 	}
 	if(SomeSig==SIGHUP)
 	{
-		int displ=siginfo->si_pid;
+/*		int displ=siginfo->si_pid;
 		if(displ!=getpid())
 		{
 			Somewhere=false;
-		}
+		}*/
 	}
 }
 
