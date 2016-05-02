@@ -32,6 +32,15 @@
 using namespace std;
 #include "fancyRW.h"
 
+
+/*struct GameBoard
+{
+	int rows;
+	int coloumns;
+	int array[5];
+	unsigned char mapya[0];
+	int DaemonID;
+};*/
 GameBoard *GoldBoardR;
 sem_t *mysemaphore;
 unsigned char* clientLocalCopy;
@@ -115,7 +124,7 @@ void client_function()
 		pipefd = open(pipefifo, O_RDONLY);
 		while(1){
 			read(pipefd, &val, sizeof(val));
-			if(val==0)
+			if(val==0);
 			{
 				wait(NULL);//zombie
 				return;	//I'm the parent, leave the function
