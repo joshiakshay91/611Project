@@ -54,18 +54,18 @@ void other_interrupt(int SomeSig, siginfo_t *siginfo,void* context)
 		cout<<"Sorry, I have been signaled that,It is too cold!!!"<<endl;
 		exit(0);
 	}
-	if(SomeSig==SIGINT|| SomeSig==SIGTERM)
+	if(SomeSig==SIGINT|| SomeSig==SIGTERM|| SIGHUP)
 	{
 		Somewhere=false;
 	}
-	if(SomeSig==SIGHUP)
+	/*if(SomeSig==SIGHUP)
 	{
 		int displ=siginfo->si_pid;
 		if(displ!=getpid())
 		{
 			Somewhere=false;
 		}
-	}
+	}*/
 }
 
 mqd_t readqueue_fd;//file descriptor
