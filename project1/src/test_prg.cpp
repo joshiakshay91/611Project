@@ -46,14 +46,14 @@ void handle_interrupt(int)
 		pointer->drawMap();
 	}
 }
-void other_interrupt(int)
+void other_interrupt(int numSig)
 {
 	if(ColdFlag)
 	{
 		cout<<"Sorry, I have been signaled that,It is too cold!!!"<<endl;
 		exit(0);
 	}
-	Somewhere=false;
+	if(numSig!=SIGHUP)	Somewhere=false;
 }
 
 mqd_t readqueue_fd;//file descriptor
@@ -425,10 +425,10 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 	string msg;
 	char button='m'; //just a garbage
 	goldMine.postNotice("Welcome To The Gold Chase Game This Box is a notice Box");
-	cout<<"DaemonID: "<<GoldBoard->DaemonID<<endl;
+	//cout<<"DaemonID: "<<GoldBoard->DaemonID<<endl;
 	while(button!='Q'&& (Somewhere))
 	{
-			cerr<<"DaemonID: "<<GoldBoard->DaemonID<<endl;
+//			cerr<<"DaemonID: "<<GoldBoard->DaemonID<<endl;
 		button=goldMine.getKey();
 		if(button=='h')
 		{
@@ -587,8 +587,8 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 	sem_wait(mysemaphore);
 	GoldBoard->mapya[playerPlacement]&=~myplayer;
 	SignalKiller((GoldBoard->array),GoldBoard->DaemonID);
-	cout<<"Quiting"<<endl;
-	cout<<"DaemonID: "<<GoldBoard->DaemonID<<endl;
+	//cout<<"Quiting"<<endl;
+	//cout<<"DaemonID: "<<GoldBoard->DaemonID<<endl;
 	sem_post(mysemaphore);
 }
 

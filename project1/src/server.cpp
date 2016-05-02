@@ -32,15 +32,6 @@
 using namespace std;
 #include "fancyRW.h"
 
-
-/*struct GameBoard
-{
-	int rows;
-	int coloumns;
-	int array[5];
-	unsigned char mapya[0];
-	int DaemonID;
-};*/
 	GameBoard* GoldBoard;
   unsigned char* myLocalCopy;
   int area;
@@ -154,7 +145,7 @@ void server_function()
 	unsigned char* orig = GoldBoard->mapya;
 	area=playerRows*playerCol;
 	myLocalCopy=(unsigned char*)malloc(sizeof (unsigned char)*playerCol*playerRows);
-
+	
 	GoldBoard->DaemonID=getpid();
 	for(int i=0;i<area;i++)
 	{

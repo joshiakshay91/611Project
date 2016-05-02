@@ -32,15 +32,6 @@
 using namespace std;
 #include "fancyRW.h"
 
-
-/*struct GameBoard
-{
-	int rows;
-	int coloumns;
-	int array[5];
-	unsigned char mapya[0];
-	int DaemonID;
-};*/
 GameBoard *GoldBoardR;
 sem_t *mysemaphore;
 unsigned char* clientLocalCopy;
@@ -96,10 +87,6 @@ if(SigNo==SIGHUP)
  {
 	 unsigned char SockPlayer=G_SOCKPLR;
 	 if(sockfd!=0)	WRITE(sockfd,&SockPlayer,sizeof(unsigned char));
-/* sem_close(mysemaphore);
- shm_unlink("/APJMEMORY");
- sem_unlink("APJgoldchase");
- exit(0);*/
  }
 
 }
@@ -215,39 +202,8 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
       // GoldBoardR->DaemonID=getpid();
        int DamID=getpid();
       // int OutByte=SockPlrz;
-
-    /*   for(int z=0;z<5;z++)
- 			{
- 				if(z==0)
-        {
-          OutByte&=G_PLR0;
-          if(OutByte==G_PLR0) GoldBoardR->array[z]=DamID;
-        }
-        else if(z==1)
-        {
-          OutByte&=G_PLR1;
-          if(OutByte==G_PLR1) GoldBoardR->array[z]=DamID;
-        }
-        else if(z==2)
-        {
-          OutByte&=G_PLR2;
-          if(OutByte==G_PLR2) GoldBoardR->array[z]=DamID;
-        }
-        else if(z==3)
-        {
-          OutByte&=G_PLR3;
-          if(OutByte==G_PLR3) GoldBoardR->array[z]=DamID;
-        }
-        else if(z==4)
-        {
-          OutByte&=G_PLR4;
-          if(OutByte==G_PLR4) GoldBoardR->array[z]=DamID;
-        }
-        OutByte=SockPlrz;
- 			}*/
-
        //GoldBoardR->array[0]=1;////////////////////////////////////////////////////
-       //GoldBoardR->DaemonID=getpid();
+       GoldBoardR->DaemonID=getpid();
        for(int i=0;i<mapSize;i++)
        {
 	       READ(sockfd,&tempData,sizeof(char));
