@@ -57,5 +57,5 @@ struct GameBoard
 
 
 void server_function();
-void client_function();
+void client_function(string);
 #endif

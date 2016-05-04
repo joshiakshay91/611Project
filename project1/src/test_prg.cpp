@@ -116,18 +116,14 @@ void writeMessage(string message,int player)
 int main(int argc, char* argv[])
 {
 
-	int Turn=0;
+ 	string Turn;
 	if(argc>1){
-	try{
-		Turn=stoi(argv[1]);
-	}catch(...)
-	{}
-	if(Turn==999){
-		sem_t *mysemaphore;
+		Turn=(argv[1]);
+			sem_t *mysemaphore;
 		mysemaphore=sem_open("/APJgoldchase",O_RDWR);
 		if(mysemaphore==SEM_FAILED)
 				{
-					client_function();
+					client_function(Turn);
 				}
 		else
 			{
@@ -135,7 +131,7 @@ int main(int argc, char* argv[])
 			}
 			usleep(1000);
 	}
-}
+
 	//////////////////////////////////////////
 	struct sigaction OtherAction;//handle the signals
 	OtherAction.sa_handler=other_interrupt;

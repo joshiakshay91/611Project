@@ -94,7 +94,7 @@ if(SigNo==SIGHUP)
 }
 
 
-void client_function()
+void client_function(string addrto)
 {
 	int pipefd;
 	const char* pipefifo="/tmp/waiter";
