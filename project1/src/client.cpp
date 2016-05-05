@@ -309,7 +309,7 @@ else if(CondiX & G_SOCKMSG)
 	{
 		if(CondiX & player_bit[i])
 		{
-
+			CondiX|~player_bit[i];
 			string reciver;
 			if(player_bit[i] == G_PLR0)	reciver="/APJplayer0_mq";
 			else if(player_bit[i] == G_PLR1)	reciver="/APJplayer1_mq";
