@@ -303,7 +303,39 @@ else if(CondiX & G_SOCKMSG)
   memset(buffer, 0, 121);
   READ(sockfd, buffer,121);
 	string putputya(buffer);
-	cerr<<"putputya: "<<putputya<<endl;
+//	cerr<<"putputya: "<<putputya<<endl;
+	unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
+	for(int i=0;i<5;++i)
+	{
+		if(CondiX & player_bit[i])
+		{
+
+			string reciver;
+			if(player_bit[i] == G_PLR0)	reciver="/APJplayer0_mq";
+			else if(player_bit[i] == G_PLR1)	reciver="/APJplayer1_mq";
+			else if(player_bit[i] == G_PLR2)	reciver="/APJplayer2_mq";
+			else if(player_bit[i] == G_PLR3)	reciver="/APJplayer3_mq";
+			else if(player_bit[i] == G_PLR4)	reciver="/APJplayer4_mq";
+			const char *ptr=putputya.c_str();
+			if((writequeue_fdR=mq_open(reciver.c_str(), O_WRONLY|O_NONBLOCK))==-1)
+			{
+				perror("msgq open error");
+			//	exit(1);
+			}
+			char message_text[121];
+			memset(message_text, 0, 121);
+			strncpy(message_text, ptr, 120);
+			if(mq_send(writequeue_fdR, message_text, strlen(message_text), 0)==-1)
+			{
+				perror("msgq send error");
+			//	exit(1);
+			}
+			mq_close(writequeue_fdR);
+		}
+	}
+
+
+
 }
     }
 		close(sockfd);
