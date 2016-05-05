@@ -32,11 +32,19 @@
 using namespace std;
 #include "fancyRW.h"
 
-	GameBoard* GoldBoard;
-  unsigned char* myLocalCopy;
-  int area;
-	int new_sockfd=0;
-	sem_t *mysemaphore1;
+GameBoard* GoldBoard;
+unsigned char* myLocalCopy;
+int area;
+int new_sockfd=0;
+sem_t *mysemaphore1;
+
+mqd_t readqueue_fdS[5];//file descriptor
+mqd_t writequeue_fdS;//file descriptor
+string mq_nameS="/APJqueue";
+
+void QueueSetupS(int player);
+void QueueCleanerS(int player);
+
 void Sother_interrupt(int SigNo)
 {
 	if(SigNo==SIGUSR1)
@@ -70,26 +78,26 @@ void Sother_interrupt(int SigNo)
 		unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
 		for(int i=0; i<5; ++i) //loop through the player bits
 		{
-		 if( GoldBoard->array[i]!=0)	SockPlayer|=player_bit[i];
+			if( GoldBoard->array[i]!=0)	SockPlayer|=player_bit[i];
 		}
-		 if(new_sockfd!=0)	WRITE(new_sockfd,&SockPlayer,sizeof(unsigned char));//send sock
-	bool tookLast=false;
-	 for (int n=0;n<5;n++)
-		 {
-			 if((GoldBoard->array[n]!=0)) //&& (GoldBoard->array[n]!=GoldBoard->DaemonID))
-			 {tookLast=true;}
-		 }
-	 if(tookLast==false)
-	 {
-		 SockPlayer=G_SOCKPLR;
-		 if(new_sockfd!=0)	WRITE(new_sockfd,&SockPlayer,sizeof(unsigned char));
-		 close(new_sockfd);
-	 sem_close(mysemaphore1);
-	 shm_unlink("/APJMEMORY");
-	 sem_unlink("APJgoldchase");
-	 exit(0);
+		if(new_sockfd!=0)	WRITE(new_sockfd,&SockPlayer,sizeof(unsigned char));//send sock
+		bool tookLast=false;
+		for (int n=0;n<5;n++)
+		{
+			if((GoldBoard->array[n]!=0)) //&& (GoldBoard->array[n]!=GoldBoard->DaemonID))
+			{tookLast=true;}
+		}
+		if(tookLast==false)
+		{
+			SockPlayer=G_SOCKPLR;
+			if(new_sockfd!=0)	WRITE(new_sockfd,&SockPlayer,sizeof(unsigned char));
+			close(new_sockfd);
+			sem_close(mysemaphore1);
+			shm_unlink("/APJMEMORY");
+			sem_unlink("APJgoldchase");
+			exit(0);
 
- }
+		}
 
 	}
 
@@ -151,7 +159,7 @@ void server_function()
 	{
 		myLocalCopy[i]=orig[i];
 	}
-  struct sigaction SotherAction;//handle the signals
+	struct sigaction SotherAction;//handle the signals
 	SotherAction.sa_handler=Sother_interrupt;
 	sigemptyset(&SotherAction.sa_mask);
 	SotherAction.sa_flags=0;
@@ -159,11 +167,11 @@ void server_function()
 	sigaction(SIGINT, &SotherAction, NULL);
 	sigaction(SIGHUP, &SotherAction, NULL);
 	sigaction(SIGTERM, &SotherAction, NULL);
-  sigaction(SIGUSR1, &SotherAction,NULL);
+	sigaction(SIGUSR1, &SotherAction,NULL);
 
-  int sockfd;
-  int status;
-  const char* portno="4500";
+	int sockfd;
+	int status;
+	const char* portno="4500";
 	struct addrinfo hints;
 	memset(&hints, 0, sizeof(hints)); //zero out everything in structure
 	hints.ai_family = AF_UNSPEC; //don't care. Either IPv4 or IPv6
@@ -174,7 +182,6 @@ void server_function()
 	if((status=getaddrinfo(NULL, portno, &hints, &servinfo))==-1)
 	{
 		fprintf(stderr, "getaddrinfo error: %s\n", gai_strerror(status));
-		//	exit(1);
 	}
 	sockfd=socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol);
 
@@ -183,7 +190,6 @@ void server_function()
 	if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int))==-1)
 	{
 		perror("setsockopt");
-		//		exit(1);
 	}
 
 	//We need to "bind" the socket to the port number so that the kernel
@@ -191,7 +197,6 @@ void server_function()
 	if((status=bind(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 	{
 		perror("bind");
-		//		exit(1);
 	}
 	//when done, release dynamically allocated memory
 	freeaddrinfo(servinfo);
@@ -199,12 +204,11 @@ void server_function()
 	if(listen(sockfd,1)==-1)
 	{
 		perror("listen");
-		//	exit(1);
 	}
 
 	//	printf("Blocking, waiting for client to connect\n");
 
-  //int new_sockfd;
+	//int new_sockfd;
 	struct sockaddr_in client_addr;
 	socklen_t clientSize=sizeof(client_addr);
 here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize))==-1)
@@ -214,31 +218,11 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
 	      //	exit(1);
       }
       int InitNum=0;
-		//	int SockPlrz=0;
+      //	int SockPlrz=0;
       WRITE(new_sockfd,&InitNum,sizeof(int));
       WRITE(new_sockfd,&playerRows,sizeof(int));
       WRITE(new_sockfd,&playerCol,sizeof(int));
-		/*	for(int z=0;z<5;z++)
-			{
-				if(GoldBoard->array[z]!=0)
-				{
-					int byter=0;
-					switch (z) {
-						case 0:	byter=G_PLR0;
-										break;
-						case 1: byter=G_PLR1;
-										break;
-						case 2:	byter=G_PLR2;
-										break;
-						case 3: byter=G_PLR3;
-										break;
-						case 4: byter=G_PLR4;
-										break;
-					}
-					SockPlrz|=byter;
-				}
-			}
-			WRITE(new_sockfd,&SockPlrz,sizeof(int));*/
+
       unsigned char *senderCopy=myLocalCopy;
       for(int J=0;J<(playerCol*playerRows);++J)
       {
@@ -249,58 +233,159 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
       unsigned char CondiX=-1;
       short positionC;
       unsigned char changed;
-			int DamID=getpid();
-			Sother_interrupt(SIGHUP);
-while(1)
-{
-	GoldBoard->DaemonID=getpid();
-	READ(new_sockfd,&CondiX,sizeof(unsigned char));
-	if(CondiX==0)
-	{
-		CondiX=-99;
-		READ(new_sockfd,&positionC,sizeof(short));
-		READ(new_sockfd,&changed,sizeof(char));
-		myLocalCopy[positionC]=changed;
-		GoldBoard->mapya[positionC]=changed;
-	//	orig=myLocalCopy;
-		for(int i=0;i<5;i++)
-		{
-			if(GoldBoard->array[i]!=0)	kill(GoldBoard->array[i],SIGUSR1);
-		}
-//					handle_interrupt(0);
-	}
-	else if(CondiX & G_SOCKPLR)
-	{
-	  unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
-	  for(int i=0; i<5; ++i) //loop through the player bits
-	  {
-	    // If player bit is on and shared memory ID is zero,
-	    // a player (from other computer) has joined:
-	    if(CondiX & player_bit[i] && GoldBoard->array[i]==0)	GoldBoard->array[i]=DamID;
+      int DamID=getpid();
+      Sother_interrupt(SIGHUP);
+      while(1)
+      {
+	      GoldBoard->DaemonID=getpid();
+	      READ(new_sockfd,&CondiX,sizeof(unsigned char));
+	      if(CondiX==0)
+	      {
+		      CondiX=-99;
+		      READ(new_sockfd,&positionC,sizeof(short));
+		      READ(new_sockfd,&changed,sizeof(char));
+		      myLocalCopy[positionC]=changed;
+		      GoldBoard->mapya[positionC]=changed;
+		      //	orig=myLocalCopy;
+		      for(int i=0;i<5;i++)
+		      {
+			      if(GoldBoard->array[i]!=0)	kill(GoldBoard->array[i],SIGUSR1);
+		      }
+		      //					handle_interrupt(0);
+	      }
+	      else if(CondiX & G_SOCKPLR)
+	      {
+		      unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
+		      for(int i=0; i<5; ++i) //loop through the player bits
+		      {
+			      // If player bit is on and shared memory ID is zero,
+			      // a player (from other computer) has joined:
+			      if(CondiX & player_bit[i] && GoldBoard->array[i]==0)
+							{
+								GoldBoard->array[i]=DamID;
+								QueueSetupS(player_bit[i]);
+							}
+			      //If player bit is off and shared memory ID is not zero,
+			      //remote player has quit:
+			      else if(!(CondiX & player_bit[i]) && GoldBoard->array[i]!=0)
+						{
+							GoldBoard->array[i]=0;
+							QueueCleanerS(player_bit[i]);
+						}
 
-	    //If player bit is off and shared memory ID is not zero,
-	    //remote player has quit:
-	    else if(!(CondiX & player_bit[i]) && GoldBoard->array[i]!=0)	GoldBoard->array[i]=0;
-
-	  }
-	  if(CondiX==G_SOCKPLR)
-		{
-			unsigned char SockPlayer=G_SOCKPLR;
-			int ret=400;
-		ret=	WRITE(new_sockfd,&SockPlayer,sizeof(unsigned char));
-		close(new_sockfd);
-	  sem_close(mysemaphore1);
-	  shm_unlink("/APJMEMORY");
-	  sem_unlink("APJgoldchase");
-	  exit(0);
-	  }
-	    //no players are left in the game.  Close and unlink the shared memory.
-	    //Close and unlink the semaphore.  Then exit the program.
-	}
-
-
+		      }
+		      if(CondiX==G_SOCKPLR)
+		      {
+			      unsigned char SockPlayer=G_SOCKPLR;
+			      int ret=400;
+			      ret=	WRITE(new_sockfd,&SockPlayer,sizeof(unsigned char));
+			      close(new_sockfd);
+			      sem_close(mysemaphore1);
+			      shm_unlink("/APJMEMORY");
+			      sem_unlink("APJgoldchase");
+			      exit(0);
+		      }
+		      //no players are left in the game.  Close and unlink the shared memory.
+		      //Close and unlink the semaphore.  Then exit the program.
+	      }
+      }
 }
 
 
 
+
+
+
+
+
+void QueueSetupS(int player)
+{
+	int FdNum;
+	if(player == G_PLR0)
+	{
+		mq_nameS="/APJplayer0_mq";
+		FdNum=0;
+	}
+	else if(player == G_PLR1)
+		{
+			mq_nameS="/APJplayer1_mq";
+			FdNum=1;
+		}
+	else if(player == G_PLR2)
+	{
+		mq_nameS="/APJplayer2_mq";
+		FdNum=2;
+	}
+	else if(player == G_PLR3)
+	{
+		mq_nameS="/APJplayer3_mq";
+		FdNum=3;
+	}
+	else if(player == G_PLR4)
+	{
+		mq_nameS="/APJplayer4_mq";
+		FdNum=4;
+	}
+/*
+	struct sigaction action_to_take;
+	action_to_take.sa_handler=ReadMessage;
+	sigemptyset(&action_to_take.sa_mask);
+	action_to_take.sa_flags=0;
+	sigaction(SIGUSR2, &action_to_take, NULL);*/
+	struct mq_attr mq_attributes;
+	mq_attributes.mq_flags=0;
+	mq_attributes.mq_maxmsg=10;
+	mq_attributes.mq_msgsize=120;
+	if((readqueue_fdS[FdNum]=mq_open(mq_nameS.c_str(), O_RDONLY|O_CREAT|O_EXCL|O_NONBLOCK,
+					S_IRUSR|S_IWUSR, &mq_attributes))==-1)
+	{
+		perror("mq_open");
+		exit(1);
+	}
+	struct sigevent mq_notification_event;
+	mq_notification_event.sigev_notify=SIGEV_SIGNAL;
+	mq_notification_event.sigev_signo=SIGUSR2;
+	mq_notify(readqueue_fdS[FdNum], &mq_notification_event);
+}
+
+
+
+void QueueCleanerS(int player)
+{
+
+int FdNum;
+if(player == G_PLR0)
+{
+	mq_nameS="/APJplayer0_mq";
+	FdNum=0;
+}
+else if(player == G_PLR1)
+	{
+		mq_nameS="/APJplayer1_mq";
+		FdNum=1;
+	}
+else if(player == G_PLR2)
+{
+	mq_nameS="/APJplayer2_mq";
+	FdNum=2;
+}
+else if(player == G_PLR3)
+{
+	mq_nameS="/APJplayer3_mq";
+	FdNum=3;
+}
+else if(player == G_PLR4)
+{
+	mq_nameS="/APJplayer4_mq";
+	FdNum=4;
+}
+
+	mq_close(readqueue_fdS[FdNum]);
+	if(mq_unlink(mq_nameS.c_str())==-1)
+	{
+		if(errno==EACCES)	perror("Access eror");
+		else if(errno==ENAMETOOLONG)	perror("Name to long");
+		else if(ENOENT==errno)	perror("Queue with no name");
+		//exit(1);
+	}
 }

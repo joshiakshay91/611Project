@@ -32,6 +32,15 @@
 using namespace std;
 #include "fancyRW.h"
 
+mqd_t readqueue_fdR[5];//file descriptor
+mqd_t writequeue_fdR;//file descriptor
+string mq_nameR="/APJqueue";
+
+void QueueSetupR(int player);
+void QueueCleanerR(int player);
+
+
+
 GameBoard *GoldBoardR;
 sem_t *mysemaphore;
 unsigned char* clientLocalCopy;
@@ -265,12 +274,18 @@ else if(CondiX & G_SOCKPLR)
   {
     // If player bit is on and shared memory ID is zero,
     // a player (from other computer) has joined:
-    if(CondiX & player_bit[i] && GoldBoardR->array[i]==0)	GoldBoardR->array[i]=DamID;
-
+    if(CondiX & player_bit[i] && GoldBoardR->array[i]==0)
+		{
+				GoldBoardR->array[i]=DamID;
+					QueueSetupR(player_bit[i]);
+		}
     //If player bit is off and shared memory ID is not zero,
     //remote player has quit:
-    else if(!(CondiX & player_bit[i]) && GoldBoardR->array[i]!=0)	GoldBoardR->array[i]=0;
-
+    else if(!(CondiX & player_bit[i]) && GoldBoardR->array[i]!=0)
+		{
+			GoldBoardR->array[i]=0;
+			QueueCleanerR(player_bit[i]);
+		}
   }
   if(CondiX==G_SOCKPLR)
 	{
@@ -288,4 +303,99 @@ else if(CondiX & G_SOCKPLR)
     }
 		close(sockfd);
 
+}
+
+
+
+
+void QueueSetupR(int player)
+{
+	int FdNum;
+	if(player == G_PLR0)
+	{
+		mq_nameR="/APJplayer0_mq";
+		FdNum=0;
+	}
+	else if(player == G_PLR1)
+		{
+			mq_nameR="/APJplayer1_mq";
+			FdNum=1;
+		}
+	else if(player == G_PLR2)
+	{
+		mq_nameR="/APJplayer2_mq";
+		FdNum=2;
+	}
+	else if(player == G_PLR3)
+	{
+		mq_nameR="/APJplayer3_mq";
+		FdNum=3;
+	}
+	else if(player == G_PLR4)
+	{
+		mq_nameR="/APJplayer4_mq";
+		FdNum=4;
+	}
+/*
+	struct sigaction action_to_take;
+	action_to_take.sa_handler=ReadMessage;
+	sigemptyset(&action_to_take.sa_mask);
+	action_to_take.sa_flags=0;
+	sigaction(SIGUSR2, &action_to_take, NULL);*/
+	struct mq_attr mq_attributes;
+	mq_attributes.mq_flags=0;
+	mq_attributes.mq_maxmsg=10;
+	mq_attributes.mq_msgsize=120;
+	if((readqueue_fdR[FdNum]=mq_open(mq_nameR.c_str(), O_RDONLY|O_CREAT|O_EXCL|O_NONBLOCK,
+					S_IRUSR|S_IWUSR, &mq_attributes))==-1)
+	{
+		perror("mq_open");
+		exit(1);
+	}
+	struct sigevent mq_notification_event;
+	mq_notification_event.sigev_notify=SIGEV_SIGNAL;
+	mq_notification_event.sigev_signo=SIGUSR2;
+	mq_notify(readqueue_fdR[FdNum], &mq_notification_event);
+}
+
+
+
+void QueueCleanerR(int player)
+{
+
+int FdNum;
+if(player == G_PLR0)
+{
+	mq_nameR="/APJplayer0_mq";
+	FdNum=0;
+}
+else if(player == G_PLR1)
+	{
+		mq_nameR="/APJplayer1_mq";
+		FdNum=1;
+	}
+else if(player == G_PLR2)
+{
+	mq_nameR="/APJplayer2_mq";
+	FdNum=2;
+}
+else if(player == G_PLR3)
+{
+	mq_nameR="/APJplayer3_mq";
+	FdNum=3;
+}
+else if(player == G_PLR4)
+{
+	mq_nameR="/APJplayer4_mq";
+	FdNum=4;
+}
+
+	mq_close(readqueue_fdR[FdNum]);
+	if(mq_unlink(mq_nameR.c_str())==-1)
+	{
+		if(errno==EACCES)	perror("Access eror");
+		else if(errno==ENAMETOOLONG)	perror("Name to long");
+		else if(ENOENT==errno)	perror("Queue with no name");
+		//exit(1);
+	}
 }
