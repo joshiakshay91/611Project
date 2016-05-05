@@ -309,7 +309,7 @@ void ReadMessageS(int)
 				int err;
 				char msg[121];
 				memset(msg, 0, 121);
-				while((err=mq_receive(readqueue_fdS[mend], msg, 120, NULL))!=-1)
+				if((err=mq_receive(readqueue_fdS[mend], msg, 120, NULL))!=-1)
 				{
 					unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
 					unsigned char SendMo=G_SOCKMSG;
