@@ -9,7 +9,6 @@
 #include<stdio.h> //for fprintf, stderr, etc.
 #include<stdlib.h> //for exit
 
-
 #include <iostream>
 #include <cstdlib>
 #include <string>
@@ -263,9 +262,6 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 					if(GoldBoardR->array[i]!=0)	kill(GoldBoardR->array[i],SIGUSR1);
 				}
 			}
-
-
-
 //			Clientother_interrupt(SIGHUP);
 else if(CondiX & G_SOCKPLR)
 {
