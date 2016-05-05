@@ -303,13 +303,21 @@ else if(CondiX & G_SOCKMSG)
   memset(buffer, 0, 121);
   READ(sockfd, buffer,121);
 	string putputya(buffer);
+	int MSGarrayD[5]={0,0,0,0,0};
 //	cerr<<"putputya: "<<putputya<<endl;
 	unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
+	for(int zz=0;zz<5;zz++)
+	{
+		if(CondiX & player_bit[zz])
+		{
+			MSGarrayD[zz]=1;
+		}
+	}
 	for(int i=0;i<5;++i)
 	{
-		if(CondiX & player_bit[i])
+		if(MSGarrayD[i])
 		{
-			CondiX&~player_bit[i];
+			//CondiX&~player_bit[i];
 			string reciver;
 			if(player_bit[i] == G_PLR0)	reciver="/APJplayer0_mq";
 			else if(player_bit[i] == G_PLR1)	reciver="/APJplayer1_mq";
