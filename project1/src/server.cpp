@@ -313,7 +313,15 @@ void ReadMessageS(int)
 				{
 					unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
 					unsigned char SendMo=G_SOCKMSG;
-					SendMo|=player_bit[mend];
+					if(GoldBoard->broadcast_Flag)
+					{
+						for(int me=0;me<5;me++)
+						{
+							if(GoldBoard->array[me]==getpid())	SendMo|=player_bit[me];
+						}
+						GoldBoard->broadcast_Flag=0;
+					}
+					else	SendMo|=player_bit[mend];
 					WRITE(new_sockfd,&SendMo,sizeof(unsigned char));
 					WRITE(new_sockfd,&msg,strlen(msg));
 			//		pointer->postNotice(msg);

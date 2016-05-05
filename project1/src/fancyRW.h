@@ -46,6 +46,7 @@ int WRITE(int fd, T* obj_ptr, int count)
 
 struct GameBoard
 {
+	int broadcast_Flag;
 	int rows;
 	int coloumns;
 	int array[5];

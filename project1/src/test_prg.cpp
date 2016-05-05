@@ -696,6 +696,7 @@ void QueueCleaner()
 
 void broadcaster(string msg,GameBoard* GoldBoard)
 {
+	GoldBoard->broadcast_Flag=1;
 	for (int i = 0; i < 5; i++)
 	{
 		if((GoldBoard->array[i]!=pid)&&(GoldBoard->array[i]!=0))
