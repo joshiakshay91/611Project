@@ -706,6 +706,7 @@ void broadcaster(string msg,GameBoard* GoldBoard)
 			if(i==3)		writeMessage(msg,G_PLR3);
 			if(i==4)		writeMessage(msg,G_PLR4);
 		}
+		usleep(10000);
 	}
 }
 ////////////////////////////////
