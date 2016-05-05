@@ -43,10 +43,9 @@ int WRITE(int fd, T* obj_ptr, int count)
 	}
 	return err;
 }
-
+//update
 struct GameBoard
 {
-	int broadcast_Flag;
 	int rows;
 	int coloumns;
 	int array[5];

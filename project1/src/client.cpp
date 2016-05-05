@@ -307,6 +307,7 @@ else if(CondiX & G_SOCKMSG)
 	unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
 	for(int i=0;i<5;++i)
 	{
+		//up
 		if(CondiX & player_bit[i])
 		{
 			CondiX&~player_bit[i];
