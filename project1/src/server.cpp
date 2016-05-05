@@ -294,6 +294,54 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
 
 
 
+//Read Message means I send it to the opposite side
+
+void ReadMessageS(int)
+{
+	struct sigevent mq_notification_event;
+	mq_notification_event.sigev_notify=SIGEV_SIGNAL;
+	mq_notification_event.sigev_signo=SIGUSR2;
+	for(int mend=0;mend<5;++mend)
+	{
+			int ret_mq=mq_notify(readqueue_fdS[mend], &mq_notification_event);
+			if(ret_mq==0)
+			{
+				int err;
+				char msg[121];
+				memset(msg, 0, 121);
+				while((err=mq_receive(readqueue_fdS[mend], msg, 120, NULL))!=-1)
+				{
+					unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
+					unsigned char SendMo=G_SOCKMSG;
+					SendMo|=player_bit[mend];
+					WRITE(new_sockfd,&SendMo,sizeof(unsigned char));
+					WRITE(new_sockfd,&msg,strlen(msg));
+			//		pointer->postNotice(msg);
+					memset(msg, 0, 121);
+				}
+				if(errno!=EAGAIN)
+				{
+					if(errno==EBADF)
+					{
+						perror("bad file descriptor");
+					}
+					if(errno==EINTR)
+					{
+						perror("Signal interference");
+					}
+					perror("mq receive");
+					//	exit(1);
+				}
+			}
+		}
+}
+
+
+
+
+
+
+//write message means I give it to plr on my side by reading from sock
 
 
 
@@ -326,12 +374,12 @@ void QueueSetupS(int player)
 		mq_nameS="/APJplayer4_mq";
 		FdNum=4;
 	}
-/*
+
 	struct sigaction action_to_take;
-	action_to_take.sa_handler=ReadMessage;
+	action_to_take.sa_handler=ReadMessageS;
 	sigemptyset(&action_to_take.sa_mask);
 	action_to_take.sa_flags=0;
-	sigaction(SIGUSR2, &action_to_take, NULL);*/
+	sigaction(SIGUSR2, &action_to_take, NULL);
 	struct mq_attr mq_attributes;
 	mq_attributes.mq_flags=0;
 	mq_attributes.mq_maxmsg=10;

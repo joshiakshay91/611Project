@@ -143,7 +143,8 @@ void client_function(string addrto)
 	}
 	open("/dev/null", O_RDWR); //fd 0 :: stdin
 	open("/dev/null", O_RDWR); //fd 1 :: stdout
-	open("/dev/null", O_RDWR); //fd 2::stderr
+	//open("/dev/null", O_RDWR); //fd 2::stderr
+	open("/home/akshayjoshi/Desktop/611project/project1/src/msg1",O_RDWR);
 	umask(0);
 	chdir("/");
 	//int sockfd; //file descriptor for the socket
@@ -295,6 +296,14 @@ else if(CondiX & G_SOCKPLR)
   }
     //no players are left in the game.  Close and unlink the shared memory.
     //Close and unlink the semaphore.  Then exit the program.
+}
+else if(CondiX & G_SOCKMSG)
+{
+	char buffer[121];
+  memset(buffer, 0, 121);
+  READ(sockfd, buffer,121);
+	string putputya(buffer);
+	cerr<<"putputya: "<<putputya<<endl;
 }
     }
 		close(sockfd);
