@@ -411,7 +411,7 @@ bool lastManStatus(GameBoard* GoldBoard)
 void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 		char myplayer, sem_t* mysemaphore)
 {
-	usleep(1500);
+	usleep(15000);
 	kill(GoldBoard->DaemonID,SIGHUP);
 	//DAM_ID=GoldBoard->DaemonID;
 	bool GoldFlag=false,Flag=false;

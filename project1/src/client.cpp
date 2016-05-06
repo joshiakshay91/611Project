@@ -74,30 +74,30 @@ void Clientother_interrupt(int SigNo)
 			WRITE(sockfd,&(pvec[i].first),sizeof(short));//send the offset
 			WRITE(sockfd,&(pvec[i].second),sizeof(char));//send the bit
 		}
-}
-if(SigNo==SIGHUP)
-{
-	unsigned char SockPlayer=G_SOCKPLR;
-  unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
-  for(int i=0; i<5; ++i) //loop through the player bits
-  {
- 	 if( GoldBoardR->array[i]!=0)	SockPlayer|=player_bit[i];
+	}
+	if(SigNo==SIGHUP)
+	{
+		unsigned char SockPlayer=G_SOCKPLR;
+		unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
+		for(int i=0; i<5; ++i) //loop through the player bits
+		{
+			if( GoldBoardR->array[i]!=0)	SockPlayer|=player_bit[i];
 
-  }
- 		if(sockfd!=0)	WRITE(sockfd,&SockPlayer,sizeof(unsigned char));//send sock
-	bool tookLast=false;
- for (int n=0;n<5;n++)
-	 {
-		if((GoldBoardR->array[n]!=0) )//&&(GoldBoardR->array[n]!=GoldBoardR->DaemonID))
-		 {tookLast=true;}
-	 }
- if(tookLast==false)
- {
-	 unsigned char SockPlayer=G_SOCKPLR;
-	 if(sockfd!=0)	WRITE(sockfd,&SockPlayer,sizeof(unsigned char));
- }
+		}
+		if(sockfd!=0)	WRITE(sockfd,&SockPlayer,sizeof(unsigned char));//send sock
+		bool tookLast=false;
+		for (int n=0;n<5;n++)
+		{
+			if((GoldBoardR->array[n]!=0) )//&&(GoldBoardR->array[n]!=GoldBoardR->DaemonID))
+			{tookLast=true;}
+		}
+		if(tookLast==false)
+		{
+			unsigned char SockPlayer=G_SOCKPLR;
+			if(sockfd!=0)	WRITE(sockfd,&SockPlayer,sizeof(unsigned char));
+		}
 
-}
+	}
 
 }
 
@@ -106,14 +106,13 @@ void client_function(string addrto)
 {
 	int pipefd;
 	const char* pipefifo="/tmp/waiter";
-  int rPid=fork();
+	int rPid=fork();
 	if(rPid<0)
 	{
 		cerr<<"Creation problem"<<endl;
 	}
 	if(rPid>0)
 	{
-
 		//			close(pipefd[1]); //close write, parent only needs read
 		int val=99;
 		pipefd = open(pipefifo, O_RDONLY);
@@ -125,8 +124,6 @@ void client_function(string addrto)
 				return;	//I'm the parent, leave the function
 			}
 		}
-  //  sleep(3);
-  //  return;
 	}
 	if(fork()>0)
 	{
@@ -143,8 +140,7 @@ void client_function(string addrto)
 	}
 	open("/dev/null", O_RDWR); //fd 0 :: stdin
 	open("/dev/null", O_RDWR); //fd 1 :: stdout
-	//open("/dev/null", O_RDWR); //fd 2::stderr
-	open("/home/akshayjoshi/Desktop/611project/project1/src/msg1",O_RDWR);
+	open("/dev/null", O_RDWR); //fd 2::stderr
 	umask(0);
 	chdir("/");
 	//int sockfd; //file descriptor for the socket
@@ -183,13 +179,13 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
        READ(sockfd,&playerCol,sizeof(int));
        int mapSize=playerRows*playerCol;
        unsigned char tempData;
-//       sem_t *mysemaphore;
+       //       sem_t *mysemaphore;
 
        mysemaphore= sem_open("/APJgoldchase", O_CREAT|O_EXCL,
 		       S_IROTH| S_IWOTH| S_IRGRP| S_IWGRP| S_IRUSR| S_IWUSR,1);
        //if(mysemaphore!=SEM_FAILED) //you are the first palyer
        //{
-			 areaC=playerRows*playerCol;
+       areaC=playerRows*playerCol;
        sem_wait(mysemaphore);
        int fd = shm_open("/APJMEMORY", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
        if(fd==-1)
@@ -206,11 +202,11 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
        clientLocalCopy=(unsigned char*)malloc(sizeof (unsigned char)*playerCol*playerRows);
        GoldBoardR->rows=playerRows;
        GoldBoardR->coloumns=playerCol;
-    //   int SockPlrz;
-    //   READ(sockfd,&SockPlrz,sizeof(int));
-      // GoldBoardR->DaemonID=getpid();
+       //   int SockPlrz;
+       //   READ(sockfd,&SockPlrz,sizeof(int));
+       // GoldBoardR->DaemonID=getpid();
        int DamID=getpid();
-      // int OutByte=SockPlrz;
+       // int OutByte=SockPlrz;
        //GoldBoardR->array[0]=1;////////////////////////////////////////////////////
        GoldBoardR->DaemonID=getpid();
        for(int i=0;i<mapSize;i++)
@@ -219,10 +215,10 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 	       dataMap[i]=tempData;//shm
 	       clientLocalCopy[i]=tempData;//loc copy
        }
-/*			 for(int i=0;i<5;i++)
-			 {
+       /*			 for(int i=0;i<5;i++)
+				 {
 				 GoldBoardR->array[i]=0;
-			 }*/
+				 }*/
        sem_post(mysemaphore);
 
        //	}
@@ -237,111 +233,151 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
        sigaction(SIGTERM, &OtherAction, NULL);
        sigaction(SIGUSR1, &OtherAction, NULL);
 
-			 int vala=0;
-	     pipefd = open(pipefifo, O_WRONLY);
+       int vala=0;
+       pipefd = open(pipefifo, O_WRONLY);
        write(pipefd, &vala, sizeof(vala));
        close(pipefd);
-		unsigned char CondiX=-1;
-		short positionC;
-		unsigned char changed;
-		GoldBoardR->DaemonID=getpid();
-		DamID=getpid();
-    while(1){
-			GoldBoardR->DaemonID=getpid();
-			READ(sockfd,&CondiX,sizeof(unsigned char));
-			if(CondiX==0)
+       unsigned char CondiX=-1;
+       short positionC;
+       unsigned char changed;
+       GoldBoardR->DaemonID=getpid();
+       DamID=getpid();
+       while(1){
+	       GoldBoardR->DaemonID=getpid();
+	       READ(sockfd,&CondiX,sizeof(unsigned char));
+	       if(CondiX==0)
+	       {
+		       CondiX=-1;
+		       READ(sockfd,&positionC,sizeof(short));
+		       READ(sockfd,&changed,sizeof(char));
+		       clientLocalCopy[positionC]=changed;
+		       sem_wait(mysemaphore);
+		       GoldBoardR->mapya[positionC]=changed;
+		       sem_post(mysemaphore);
+		       for(int i=0;i<5;i++)
+		       {
+			       if(GoldBoardR->array[i]!=0)	kill(GoldBoardR->array[i],SIGUSR1);
+		       }
+	       }
+	       //			Clientother_interrupt(SIGHUP);
+	       else if(CondiX & G_SOCKPLR)
+	       {
+		       unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
+		       for(int i=0; i<5; ++i) //loop through the player bits
+		       {
+			       // If player bit is on and shared memory ID is zero,
+			       // a player (from other computer) has joined:
+			       if(CondiX & player_bit[i] && GoldBoardR->array[i]==0)
+			       {
+				       GoldBoardR->array[i]=DamID;
+				       QueueSetupR(player_bit[i]);
+			       }
+			       //If player bit is off and shared memory ID is not zero,
+			       //remote player has quit:
+			       else if(!(CondiX & player_bit[i]) && GoldBoardR->array[i]!=0)
+			       {
+				       GoldBoardR->array[i]=0;
+				       QueueCleanerR(player_bit[i]);
+			       }
+		       }
+		       if(CondiX==G_SOCKPLR)
+		       {
+			       unsigned char SockPlayer=G_SOCKPLR;
+			       WRITE(sockfd,&SockPlayer,sizeof(unsigned char));
+			       close(sockfd);
+			       sem_close(mysemaphore);
+			       shm_unlink("/APJMEMORY");
+			       sem_unlink("APJgoldchase");
+			       exit(0);
+		       }
+		       //no players are left in the game.  Close and unlink the shared memory.
+		       //Close and unlink the semaphore.  Then exit the program.
+	       }
+	       else if(CondiX & G_SOCKMSG)
+	       {
+		       char buffer[121];
+		       memset(buffer, 0, 121);
+		       READ(sockfd, buffer,121);
+		       string putputya(buffer);
+		       unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
+		       for(int i=0;i<5;++i)
+		       {
+			       if(CondiX & player_bit[i])
+			       {
+				       CondiX&~player_bit[i];
+				       string reciver;
+				       if(player_bit[i] == G_PLR0)	reciver="/APJplayer0_mq";
+				       else if(player_bit[i] == G_PLR1)	reciver="/APJplayer1_mq";
+				       else if(player_bit[i] == G_PLR2)	reciver="/APJplayer2_mq";
+				       else if(player_bit[i] == G_PLR3)	reciver="/APJplayer3_mq";
+				       else if(player_bit[i] == G_PLR4)	reciver="/APJplayer4_mq";
+				       const char *ptr=putputya.c_str();
+				       if((writequeue_fdR=mq_open(reciver.c_str(), O_WRONLY|O_NONBLOCK))==-1)
+				       {
+					       perror("msgq open error");
+					       //	exit(1);
+				       }
+				       char message_text[121];
+				       memset(message_text, 0, 121);
+				       strncpy(message_text, ptr, 120);
+				       if(mq_send(writequeue_fdR, message_text, strlen(message_text), 0)==-1)
+				       {
+					       perror("msgq send error");
+					       //	exit(1);
+				       }
+				       mq_close(writequeue_fdR);
+			       }
+		       }
+	       }
+       }
+       close(sockfd);
+}
+
+//Read Message means I send it to the opposite side
+
+void ReadMessageR(int)
+{
+	struct sigevent mq_notification_event;
+	mq_notification_event.sigev_notify=SIGEV_SIGNAL;
+	mq_notification_event.sigev_signo=SIGUSR2;
+	for(int mend=0;mend<5;++mend)
+	{
+			int ret_mq=mq_notify(readqueue_fdR[mend], &mq_notification_event);
+			if(ret_mq==0)
 			{
-				CondiX=-1;
-				READ(sockfd,&positionC,sizeof(short));
-				READ(sockfd,&changed,sizeof(char));
-				clientLocalCopy[positionC]=changed;
-				sem_wait(mysemaphore);
-				GoldBoardR->mapya[positionC]=changed;
-				sem_post(mysemaphore);
-				for(int i=0;i<5;i++)
+				int err;
+				char msg[121];
+				memset(msg, 0, 121);
+				if((err=mq_receive(readqueue_fdR[mend], msg, 120, NULL))!=-1)
 				{
-					if(GoldBoardR->array[i]!=0)	kill(GoldBoardR->array[i],SIGUSR1);
+					unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
+					unsigned char SendMo=G_SOCKMSG;
+					//update
+					SendMo|=player_bit[mend];
+					WRITE(sockfd,&SendMo,sizeof(unsigned char));
+					WRITE(sockfd,&msg,strlen(msg));
+			//		pointer->postNotice(msg);
+					memset(msg, 0, 121);
+				}
+				if(errno!=EAGAIN)
+				{
+					if(errno==EBADF)
+					{
+						perror("bad file descriptor");
+					}
+					if(errno==EINTR)
+					{
+						perror("Signal interference");
+					}
+					perror("mq receive");
+					//	exit(1);
 				}
 			}
-//			Clientother_interrupt(SIGHUP);
-else if(CondiX & G_SOCKPLR)
-{
-  unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
-  for(int i=0; i<5; ++i) //loop through the player bits
-  {
-    // If player bit is on and shared memory ID is zero,
-    // a player (from other computer) has joined:
-    if(CondiX & player_bit[i] && GoldBoardR->array[i]==0)
-		{
-				GoldBoardR->array[i]=DamID;
-					QueueSetupR(player_bit[i]);
 		}
-    //If player bit is off and shared memory ID is not zero,
-    //remote player has quit:
-    else if(!(CondiX & player_bit[i]) && GoldBoardR->array[i]!=0)
-		{
-			GoldBoardR->array[i]=0;
-			QueueCleanerR(player_bit[i]);
-		}
-  }
-  if(CondiX==G_SOCKPLR)
-	{
-		unsigned char SockPlayer=G_SOCKPLR;
-		WRITE(sockfd,&SockPlayer,sizeof(unsigned char));
-		close(sockfd);
-  sem_close(mysemaphore);
-  shm_unlink("/APJMEMORY");
-  sem_unlink("APJgoldchase");
-  exit(0);
-  }
-    //no players are left in the game.  Close and unlink the shared memory.
-    //Close and unlink the semaphore.  Then exit the program.
 }
-else if(CondiX & G_SOCKMSG)
-{
-	char buffer[121];
-  memset(buffer, 0, 121);
-  READ(sockfd, buffer,121);
-	string putputya(buffer);
-//	cerr<<"putputya: "<<putputya<<endl;
-	unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
-	for(int i=0;i<5;++i)
-	{
-		//up
-		if(CondiX & player_bit[i])
-		{
-			CondiX&~player_bit[i];
-			string reciver;
-			if(player_bit[i] == G_PLR0)	reciver="/APJplayer0_mq";
-			else if(player_bit[i] == G_PLR1)	reciver="/APJplayer1_mq";
-			else if(player_bit[i] == G_PLR2)	reciver="/APJplayer2_mq";
-			else if(player_bit[i] == G_PLR3)	reciver="/APJplayer3_mq";
-			else if(player_bit[i] == G_PLR4)	reciver="/APJplayer4_mq";
-			const char *ptr=putputya.c_str();
-			if((writequeue_fdR=mq_open(reciver.c_str(), O_WRONLY|O_NONBLOCK))==-1)
-			{
-				perror("msgq open error");
-			//	exit(1);
-			}
-			char message_text[121];
-			memset(message_text, 0, 121);
-			strncpy(message_text, ptr, 120);
-			if(mq_send(writequeue_fdR, message_text, strlen(message_text), 0)==-1)
-			{
-				perror("msgq send error");
-			//	exit(1);
-			}
-			mq_close(writequeue_fdR);
-		}
-	}
 
 
 
-}
-    }
-		close(sockfd);
-
-}
 
 
 
@@ -355,10 +391,10 @@ void QueueSetupR(int player)
 		FdNum=0;
 	}
 	else if(player == G_PLR1)
-		{
-			mq_nameR="/APJplayer1_mq";
-			FdNum=1;
-		}
+	{
+		mq_nameR="/APJplayer1_mq";
+		FdNum=1;
+	}
 	else if(player == G_PLR2)
 	{
 		mq_nameR="/APJplayer2_mq";
@@ -374,12 +410,12 @@ void QueueSetupR(int player)
 		mq_nameR="/APJplayer4_mq";
 		FdNum=4;
 	}
-/*
-	struct sigaction action_to_take;
-	action_to_take.sa_handler=ReadMessage;
-	sigemptyset(&action_to_take.sa_mask);
-	action_to_take.sa_flags=0;
-	sigaction(SIGUSR2, &action_to_take, NULL);*/
+	/*
+	   struct sigaction action_to_take;
+	   action_to_take.sa_handler=ReadMessage;
+	   sigemptyset(&action_to_take.sa_mask);
+	   action_to_take.sa_flags=0;
+	   sigaction(SIGUSR2, &action_to_take, NULL);*/
 	struct mq_attr mq_attributes;
 	mq_attributes.mq_flags=0;
 	mq_attributes.mq_maxmsg=10;
@@ -401,32 +437,32 @@ void QueueSetupR(int player)
 void QueueCleanerR(int player)
 {
 
-int FdNum;
-if(player == G_PLR0)
-{
-	mq_nameR="/APJplayer0_mq";
-	FdNum=0;
-}
-else if(player == G_PLR1)
+	int FdNum;
+	if(player == G_PLR0)
+	{
+		mq_nameR="/APJplayer0_mq";
+		FdNum=0;
+	}
+	else if(player == G_PLR1)
 	{
 		mq_nameR="/APJplayer1_mq";
 		FdNum=1;
 	}
-else if(player == G_PLR2)
-{
-	mq_nameR="/APJplayer2_mq";
-	FdNum=2;
-}
-else if(player == G_PLR3)
-{
-	mq_nameR="/APJplayer3_mq";
-	FdNum=3;
-}
-else if(player == G_PLR4)
-{
-	mq_nameR="/APJplayer4_mq";
-	FdNum=4;
-}
+	else if(player == G_PLR2)
+	{
+		mq_nameR="/APJplayer2_mq";
+		FdNum=2;
+	}
+	else if(player == G_PLR3)
+	{
+		mq_nameR="/APJplayer3_mq";
+		FdNum=3;
+	}
+	else if(player == G_PLR4)
+	{
+		mq_nameR="/APJplayer4_mq";
+		FdNum=4;
+	}
 
 	mq_close(readqueue_fdR[FdNum]);
 	if(mq_unlink(mq_nameR.c_str())==-1)
