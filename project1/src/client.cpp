@@ -410,12 +410,12 @@ void QueueSetupR(int player)
 		mq_nameR="/APJplayer4_mq";
 		FdNum=4;
 	}
-	/*
+
 	   struct sigaction action_to_take;
-	   action_to_take.sa_handler=ReadMessage;
+	   action_to_take.sa_handler=ReadMessageR;
 	   sigemptyset(&action_to_take.sa_mask);
 	   action_to_take.sa_flags=0;
-	   sigaction(SIGUSR2, &action_to_take, NULL);*/
+	   sigaction(SIGUSR2, &action_to_take, NULL);
 	struct mq_attr mq_attributes;
 	mq_attributes.mq_flags=0;
 	mq_attributes.mq_maxmsg=10;
