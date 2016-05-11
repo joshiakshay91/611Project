@@ -145,8 +145,8 @@ void client_function(string addrto)
 	open("/dev/null", O_RDWR); //fd 2::stderr
 	umask(0);
 	chdir("/");
+	//client socket initialization
 	int status; //for error checking
-
 	//change this # between 2000-65k before using
 	const char* portno="4525";
 

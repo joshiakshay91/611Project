@@ -168,7 +168,7 @@ void server_function()
 	sigaction(SIGHUP, &SotherAction, NULL);
 	sigaction(SIGTERM, &SotherAction, NULL);
 	sigaction(SIGUSR1, &SotherAction,NULL);
-
+//socket initialization starts right here
 	int sockfd;
 	int status;
 	const char* portno="4525";
