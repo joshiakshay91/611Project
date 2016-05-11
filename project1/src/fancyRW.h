@@ -2,26 +2,26 @@
 #define fancyRW_h
 #include<unistd.h>
 #include <errno.h>
-template<typename T>
+	template<typename T>
 int READ(int fd, T* obj_ptr, int count)
 {
 	int err=0;
 	char* addr=(char*)obj_ptr;
 again:
-		err=read(fd,addr,count);
-		if(err<0 && errno==EINTR)
-		{
-			goto again;
-		}
-		else if(err==-1)
-		{
-			return err;
-		}
+	err=read(fd,addr,count);
+	if(err<0 && errno==EINTR)
+	{
+		goto again;
+	}
+	else if(err==-1)
+	{
+		return err;
+	}
 	return err;//success on reading
 	//loop. Read repeatedly until count bytes are read in
 }
 
-template<typename T>
+	template<typename T>
 int WRITE(int fd, T* obj_ptr, int count)
 {
 	int originalC=count;
@@ -35,7 +35,7 @@ int WRITE(int fd, T* obj_ptr, int count)
 			count=originalC;
 			continue;
 		}
-		 if(err== -1)
+		if(err== -1)
 		{
 			return err;
 		}

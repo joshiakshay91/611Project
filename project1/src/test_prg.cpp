@@ -141,14 +141,14 @@ int main(int argc, char* argv[])
 
 	//////////////////////////////////////////
 	struct sigaction OtherAction;//handle the signals
-		OtherAction.sa_sigaction=other_interrupt;
-		//OtherAction.sa_handler=other_interrupt;
-		//sigemptyset(&OtherAction.sa_mask);
-		OtherAction.sa_flags|=SA_SIGINFO;
-		OtherAction.sa_restorer=NULL;
-		sigaction(SIGINT, &OtherAction, NULL);
-		sigaction(SIGHUP, &OtherAction, NULL);
-		sigaction(SIGTERM, &OtherAction, NULL);
+	OtherAction.sa_sigaction=other_interrupt;
+	//OtherAction.sa_handler=other_interrupt;
+	//sigemptyset(&OtherAction.sa_mask);
+	OtherAction.sa_flags|=SA_SIGINFO;
+	OtherAction.sa_restorer=NULL;
+	sigaction(SIGINT, &OtherAction, NULL);
+	sigaction(SIGHUP, &OtherAction, NULL);
+	sigaction(SIGTERM, &OtherAction, NULL);
 	/////////////////////////////////////////
 	cout<<"What is you name?"<<endl;
 	getline(cin,senderI);
@@ -427,10 +427,8 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 	string msg;
 	char button='m'; //just a garbage
 	goldMine.postNotice("Welcome To The Gold Chase Game This Box is a notice Box");
-	//cout<<"DaemonID: "<<GoldBoard->DaemonID<<endl;
 	while(button!='Q'&& (Somewhere))
 	{
-		//			cerr<<"DaemonID: "<<GoldBoard->DaemonID<<endl;
 		button=goldMine.getKey();
 		if(button=='h')
 		{
@@ -589,8 +587,6 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 	sem_wait(mysemaphore);
 	GoldBoard->mapya[playerPlacement]&=~myplayer;
 	SignalKiller((GoldBoard->array),GoldBoard->DaemonID);
-	//cout<<"Quiting"<<endl;
-	//cout<<"DaemonID: "<<GoldBoard->DaemonID<<endl;
 	sem_post(mysemaphore);
 }
 

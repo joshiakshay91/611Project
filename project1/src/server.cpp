@@ -6,7 +6,6 @@ Date: 10 May 2016
 
 #include "goldchase.h"
 #include "Map.h"
-
 #include <sys/types.h>
 #include<sys/socket.h>
 #include<netdb.h>
@@ -14,8 +13,6 @@ Date: 10 May 2016
 #include<string> //for memset
 #include<stdio.h> //for fprintf, stderr, etc.
 #include<stdlib.h> //for exit
-
-
 #include <iostream>
 #include <cstdlib>
 #include <string>
@@ -102,11 +99,8 @@ void Sother_interrupt(int SigNo)
 			shm_unlink("/APJMEMORY");
 			sem_unlink("APJgoldchase");
 			exit(0);
-
 		}
-
 	}
-
 }
 
 
@@ -177,7 +171,7 @@ void server_function()
 
 	int sockfd;
 	int status;
-	const char* portno="4500";
+	const char* portno="4525";
 	struct addrinfo hints;
 	memset(&hints, 0, sizeof(hints)); //zero out everything in structure
 	hints.ai_family = AF_UNSPEC; //don't care. Either IPv4 or IPv6
@@ -211,9 +205,7 @@ void server_function()
 	{
 		perror("listen");
 	}
-
 	//	printf("Blocking, waiting for client to connect\n");
-
 	//int new_sockfd;
 	struct sockaddr_in client_addr;
 	socklen_t clientSize=sizeof(client_addr);
@@ -374,15 +366,7 @@ void ReadMessageS(int)
 }
 
 
-
-
-
-
 //write message means I give it to plr on my side by reading from sock
-
-
-
-
 void QueueSetupS(int player)
 {
 	int FdNum;
@@ -464,7 +448,6 @@ void QueueCleanerS(int player)
 		mq_nameS="/APJplayer4_mq";
 		FdNum=4;
 	}
-
 	mq_close(readqueue_fdS[FdNum]);
 	if(mq_unlink(mq_nameS.c_str())==-1)
 	{

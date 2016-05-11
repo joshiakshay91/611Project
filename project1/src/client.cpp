@@ -66,7 +66,6 @@ void Clientother_interrupt(int SigNo)
 				pvec.push_back(aPair);
 				clientLocalCopy[i]=shared_memory_map[i];
 			}
-
 		}
 		//here iterate through pvec, writing out to socket
 
@@ -100,9 +99,7 @@ void Clientother_interrupt(int SigNo)
 			unsigned char SockPlayer=G_SOCKPLR;
 			if(sockfd!=0)	WRITE(sockfd,&SockPlayer,sizeof(unsigned char));
 		}
-
 	}
-
 }
 
 
@@ -151,7 +148,7 @@ void client_function(string addrto)
 	int status; //for error checking
 
 	//change this # between 2000-65k before using
-	const char* portno="4500";
+	const char* portno="4525";
 
 	struct addrinfo hints;
 	memset(&hints, 0, sizeof(hints)); //zero out everything in structure
@@ -169,7 +166,7 @@ void client_function(string addrto)
 Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
        {
 	       goto Lagain;
-				 //exit(1);
+	       //exit(1);
        }
        //release the information allocated by getaddrinfo()
        freeaddrinfo(servinfo);
@@ -213,7 +210,7 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 	       clientLocalCopy[i]=tempData;//loc copy
        }
        sem_post(mysemaphore);
-     struct sigaction OtherAction;//handle the signals
+       struct sigaction OtherAction;//handle the signals
        OtherAction.sa_handler=Clientother_interrupt;
        sigemptyset(&OtherAction.sa_mask);
        OtherAction.sa_flags=0;
@@ -232,7 +229,8 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
        unsigned char changed;
        GoldBoardR->DaemonID=getpid();
        DamID=getpid();
-       while(1){
+       while(1)
+			 {
 	       GoldBoardR->DaemonID=getpid();
 	       READ(sockfd,&CondiX,sizeof(unsigned char));
 	       if(CondiX==0)
