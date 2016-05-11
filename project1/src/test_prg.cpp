@@ -24,10 +24,7 @@ Date: 10 May 2016
 #include <mqueue.h>
 using namespace std;
 #include "fancyRW.h"
-//the GameBoard struct
-//sem_t *mysemaphore; //semaphore
 int pid;
-//int DAM_ID=0;
 bool Somewhere=true;//for handling interrupt
 bool ColdFlag=true;//for handling interrupt when getting input
 Map* pointer=NULL;//Global Map Pointer
@@ -46,16 +43,26 @@ void handle_interrupt(int)
 		pointer->drawMap();
 	}
 }
-void other_interrupt(int numSig)
+void other_interrupt(int SomeSig, siginfo_t *siginfo,void* context)
 {
 	if(ColdFlag)
 	{
 		cout<<"Sorry, I have been signaled that,It is too cold!!!"<<endl;
 		exit(0);
 	}
-	Somewhere=false;
+	if(SomeSig==SIGINT|| SomeSig==SIGTERM)
+	{
+		Somewhere=false;
+	}
+	if(SomeSig==SIGHUP)
+	{
+		int displ=siginfo->si_pid;
+		if(displ!=getpid())
+		{
+			Somewhere=false;
+		}
+	}
 }
-
 mqd_t readqueue_fd;//file descriptor
 mqd_t writequeue_fd;//file descriptor
 string mq_name="/APJqueue";
@@ -134,13 +141,14 @@ int main(int argc, char* argv[])
 
 	//////////////////////////////////////////
 	struct sigaction OtherAction;//handle the signals
-	OtherAction.sa_handler=other_interrupt;
-	sigemptyset(&OtherAction.sa_mask);
-	OtherAction.sa_flags=0;
-	OtherAction.sa_restorer=NULL;
-	sigaction(SIGINT, &OtherAction, NULL);
-	sigaction(SIGHUP, &OtherAction, NULL);
-	sigaction(SIGTERM, &OtherAction, NULL);
+		OtherAction.sa_sigaction=other_interrupt;
+		//OtherAction.sa_handler=other_interrupt;
+		//sigemptyset(&OtherAction.sa_mask);
+		OtherAction.sa_flags|=SA_SIGINFO;
+		OtherAction.sa_restorer=NULL;
+		sigaction(SIGINT, &OtherAction, NULL);
+		sigaction(SIGHUP, &OtherAction, NULL);
+		sigaction(SIGTERM, &OtherAction, NULL);
 	/////////////////////////////////////////
 	cout<<"What is you name?"<<endl;
 	getline(cin,senderI);
@@ -344,8 +352,6 @@ int main(int argc, char* argv[])
 
 			pointer=&goldMine;
 			goldMine.drawMap();
-			//sighup
-			//			if(GoldBoard->DaemonID!=0)
 			movement(GoldBoard,player2Placement,goldMine,currentPlayer,mysemaphore);
 		}catch(std::runtime_error& e){
 			sem_post(mysemaphore);
@@ -411,9 +417,8 @@ bool lastManStatus(GameBoard* GoldBoard)
 void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 		char myplayer, sem_t* mysemaphore)
 {
-	usleep(15000);
+	usleep(15000);//layer of protection if accidently triggers sighup to itself
 	kill(GoldBoard->DaemonID,SIGHUP);
-	//DAM_ID=GoldBoard->DaemonID;
 	bool GoldFlag=false,Flag=false;
 	int MapCol=GoldBoard->coloumns;
 	int MapRow=GoldBoard->rows;

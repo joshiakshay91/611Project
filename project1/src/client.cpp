@@ -204,12 +204,7 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
        clientLocalCopy=(unsigned char*)malloc(sizeof (unsigned char)*playerCol*playerRows);
        GoldBoardR->rows=playerRows;
        GoldBoardR->coloumns=playerCol;
-       //   int SockPlrz;
-       //   READ(sockfd,&SockPlrz,sizeof(int));
-       // GoldBoardR->DaemonID=getpid();
        int DamID=getpid();
-       // int OutByte=SockPlrz;
-       //GoldBoardR->array[0]=1;////////////////////////////////////////////////////
        GoldBoardR->DaemonID=getpid();
        for(int i=0;i<mapSize;i++)
        {
@@ -217,15 +212,8 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 	       dataMap[i]=tempData;//shm
 	       clientLocalCopy[i]=tempData;//loc copy
        }
-       /*			 for(int i=0;i<5;i++)
-				 {
-				 GoldBoardR->array[i]=0;
-				 }*/
        sem_post(mysemaphore);
-
-       //	}
-       //
-       struct sigaction OtherAction;//handle the signals
+     struct sigaction OtherAction;//handle the signals
        OtherAction.sa_handler=Clientother_interrupt;
        sigemptyset(&OtherAction.sa_mask);
        OtherAction.sa_flags=0;
@@ -336,7 +324,6 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 }
 
 //Read Message means I send it to the opposite side
-
 void ReadMessageR(int)
 {
 	struct sigevent mq_notification_event;
@@ -377,12 +364,6 @@ void ReadMessageR(int)
 		}
 	}
 }
-
-
-
-
-
-
 
 void QueueSetupR(int player)
 {

@@ -224,7 +224,6 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
 	      //	exit(1);
       }
       int InitNum=0;
-      //	int SockPlrz=0;
       WRITE(new_sockfd,&InitNum,sizeof(int));
       WRITE(new_sockfd,&playerRows,sizeof(int));
       WRITE(new_sockfd,&playerCol,sizeof(int));
@@ -234,8 +233,6 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
       {
 	      WRITE(new_sockfd,&senderCopy[J],sizeof(senderCopy[J]));
       }
-
-      //int readByteN;
       unsigned char CondiX=-1;
       short positionC;
       unsigned char changed;
@@ -330,14 +327,8 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
 			      }
 		      }
 	      }
-
-
-
       }
 }
-
-
-
 
 //Read Message means I send it to the opposite side
 
