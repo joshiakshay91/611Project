@@ -280,12 +280,7 @@ int main(int argc, char* argv[])
 			}
 			sem_post(mysemaphore);
 			pointer=&goldMine;
-			//			if(GoldBoard->DaemonID=0)
-			//{
 			server_function();
-			//sighup
-			//					if(GoldBoard->DaemonID!=0)	kill(GoldBoard->DaemonID,SIGHUP);
-			//}
 			movement(GoldBoard,player1Placement,goldMine,myplayer,mysemaphore);
 		}catch(std::runtime_error& e){
 			sem_post(mysemaphore);
@@ -388,7 +383,6 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 	QueueCleaner();
-	//if(lastPos)
 	if(GoldBoard->DaemonID!=0)	kill(GoldBoard->DaemonID,SIGHUP);
 	if(lastPos){
 		sem_close(mysemaphore);

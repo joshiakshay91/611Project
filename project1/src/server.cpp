@@ -87,7 +87,7 @@ void Sother_interrupt(int SigNo)
 		bool tookLast=false;
 		for (int n=0;n<5;n++)
 		{
-			if((GoldBoard->array[n]!=0)) //&& (GoldBoard->array[n]!=GoldBoard->DaemonID))
+			if((GoldBoard->array[n]!=0))
 			{tookLast=true;}
 		}
 		if(tookLast==false)
