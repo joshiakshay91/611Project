@@ -1,3 +1,9 @@
+/*
+Author: Akshay Joshi
+Date: 10 May 2016
+ */
+
+
 #include "goldchase.h"
 #include "Map.h"
 

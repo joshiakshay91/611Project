@@ -1,3 +1,7 @@
+/*
+Author: Akshay Joshi
+Date: 10 May 2016
+ */
 #include "goldchase.h"
 #include "Map.h"
 
@@ -104,8 +108,8 @@ void Clientother_interrupt(int SigNo)
 
 void client_function(string addrto)
 {
-	int pipefd;
-	const char* pipefifo="/tmp/waiter";
+	int pipefd[2];
+  pipe(pipefd);
 	int rPid=fork();
 	if(rPid<0)
 	{
@@ -114,10 +118,10 @@ void client_function(string addrto)
 	if(rPid>0)
 	{
 		//			close(pipefd[1]); //close write, parent only needs read
+		 close(pipefd[1]); //close write, parent only needs read
 		int val=99;
-		pipefd = open(pipefifo, O_RDONLY);
 		while(1){
-			read(pipefd, &val, sizeof(val));
+		read(pipefd[0], &val, sizeof(val));
 			if(val==0);
 			{
 				wait(NULL);//zombie
@@ -143,7 +147,6 @@ void client_function(string addrto)
 	open("/dev/null", O_RDWR); //fd 2::stderr
 	umask(0);
 	chdir("/");
-	//int sockfd; //file descriptor for the socket
 	int status; //for error checking
 
 	//change this # between 2000-65k before using
@@ -159,15 +162,13 @@ void client_function(string addrto)
 	if((status=getaddrinfo("172.16.57.132", portno, &hints, &servinfo))==-1)
 	{
 		fprintf(stderr, "getaddrinfo error: %s\n", gai_strerror(status));
-		//		exit(1);
 	}
 	sockfd=socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol);
 
 Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
        {
 	       goto Lagain;
-	       //			perror("connect");
-	       //			exit(1);
+				 //exit(1);
        }
        //release the information allocated by getaddrinfo()
        freeaddrinfo(servinfo);
@@ -234,9 +235,8 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
        sigaction(SIGUSR1, &OtherAction, NULL);
 
        int vala=0;
-       pipefd = open(pipefifo, O_WRONLY);
-       write(pipefd, &vala, sizeof(vala));
-       close(pipefd);
+			 write(pipefd[1], &vala, sizeof(vala));
+       close(pipefd[1]);
        unsigned char CondiX=-1;
        short positionC;
        unsigned char changed;
