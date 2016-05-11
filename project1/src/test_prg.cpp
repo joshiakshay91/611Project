@@ -25,7 +25,7 @@ Date: 13 March 2016
 using namespace std;
 #include "fancyRW.h"
 //the GameBoard struct
-	//sem_t *mysemaphore; //semaphore
+//sem_t *mysemaphore; //semaphore
 int pid;
 //int DAM_ID=0;
 bool Somewhere=true;//for handling interrupt
@@ -116,20 +116,20 @@ void writeMessage(string message,int player)
 int main(int argc, char* argv[])
 {
 
- 	string Turn;
+	string Turn;
 	if(argc>1){
 		Turn=(argv[1]);
-			sem_t *mysemaphore;
+		sem_t *mysemaphore;
 		mysemaphore=sem_open("/APJgoldchase",O_RDWR);
 		if(mysemaphore==SEM_FAILED)
-				{
-					client_function(Turn);
-				}
+		{
+			client_function(Turn);
+		}
 		else
-			{
-				sem_close(mysemaphore);
-			}
-			usleep(1000);
+		{
+			sem_close(mysemaphore);
+		}
+		usleep(1000);
 	}
 
 	//////////////////////////////////////////
@@ -175,7 +175,7 @@ int main(int argc, char* argv[])
 			perror("Shared memory creation failed");
 			exit(1);
 		}
-//loading the map
+		//loading the map
 		ifstream in("mymap.txt");
 		getline(in,line);
 		counter=std::stoi(line.c_str());//convert using stoi ..inclass
@@ -272,12 +272,12 @@ int main(int argc, char* argv[])
 			}
 			sem_post(mysemaphore);
 			pointer=&goldMine;
-//			if(GoldBoard->DaemonID=0)
-				//{
-					server_function();
-					//sighup
-//					if(GoldBoard->DaemonID!=0)	kill(GoldBoard->DaemonID,SIGHUP);
-				//}
+			//			if(GoldBoard->DaemonID=0)
+			//{
+			server_function();
+			//sighup
+			//					if(GoldBoard->DaemonID!=0)	kill(GoldBoard->DaemonID,SIGHUP);
+			//}
 			movement(GoldBoard,player1Placement,goldMine,myplayer,mysemaphore);
 		}catch(std::runtime_error& e){
 			sem_post(mysemaphore);
@@ -345,7 +345,7 @@ int main(int argc, char* argv[])
 			pointer=&goldMine;
 			goldMine.drawMap();
 			//sighup
-//			if(GoldBoard->DaemonID!=0)
+			//			if(GoldBoard->DaemonID!=0)
 			movement(GoldBoard,player2Placement,goldMine,currentPlayer,mysemaphore);
 		}catch(std::runtime_error& e){
 			sem_post(mysemaphore);
@@ -375,20 +375,20 @@ int main(int argc, char* argv[])
 		QueueCleaner();
 		if(GoldBoard->DaemonID!=0)	kill(GoldBoard->DaemonID,SIGHUP);
 		if(lastPos){
-				sem_close(mysemaphore);
-				shm_unlink("/APJMEMORY");
-				sem_unlink("APJgoldchase");
-			}
+			sem_close(mysemaphore);
+			shm_unlink("/APJMEMORY");
+			sem_unlink("APJgoldchase");
+		}
 		return 0;
 	}
 	QueueCleaner();
 	//if(lastPos)
 	if(GoldBoard->DaemonID!=0)	kill(GoldBoard->DaemonID,SIGHUP);
 	if(lastPos){
-			sem_close(mysemaphore);
-			shm_unlink("/APJMEMORY");
-			sem_unlink("APJgoldchase");
-		}
+		sem_close(mysemaphore);
+		shm_unlink("/APJMEMORY");
+		sem_unlink("APJgoldchase");
+	}
 	return 0;
 }
 //checks the last man status in the game
@@ -425,7 +425,7 @@ void movement(GameBoard* GoldBoard,int playerPlacement,Map& goldMine,
 	//cout<<"DaemonID: "<<GoldBoard->DaemonID<<endl;
 	while(button!='Q'&& (Somewhere))
 	{
-//			cerr<<"DaemonID: "<<GoldBoard->DaemonID<<endl;
+		//			cerr<<"DaemonID: "<<GoldBoard->DaemonID<<endl;
 		button=goldMine.getKey();
 		if(button=='h')
 		{

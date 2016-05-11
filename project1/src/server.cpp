@@ -261,17 +261,17 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
 			      // If player bit is on and shared memory ID is zero,
 			      // a player (from other computer) has joined:
 			      if(CondiX & player_bit[i] && GoldBoard->array[i]==0)
-							{
-								GoldBoard->array[i]=DamID;
-								QueueSetupS(player_bit[i]);
-							}
+			      {
+				      GoldBoard->array[i]=DamID;
+				      QueueSetupS(player_bit[i]);
+			      }
 			      //If player bit is off and shared memory ID is not zero,
 			      //remote player has quit:
 			      else if(!(CondiX & player_bit[i]) && GoldBoard->array[i]!=0)
-						{
-							GoldBoard->array[i]=0;
-							QueueCleanerS(player_bit[i]);
-						}
+			      {
+				      GoldBoard->array[i]=0;
+				      QueueCleanerS(player_bit[i]);
+			      }
 
 		      }
 		      if(CondiX==G_SOCKPLR)
@@ -288,42 +288,42 @@ here: if((new_sockfd=accept(sockfd, (struct sockaddr*) &client_addr, &clientSize
 		      //no players are left in the game.  Close and unlink the shared memory.
 		      //Close and unlink the semaphore.  Then exit the program.
 	      }
-				else if(CondiX & G_SOCKMSG)
-				{
-					char buffer[121];
-					memset(buffer, 0, 121);
-					READ(new_sockfd, buffer,121);
-					string putputya(buffer);
-					unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
-					for(int i=0;i<5;++i)
-					{
-						if(CondiX & player_bit[i])
-						{
-							CondiX&~player_bit[i];
-							string reciver;
-							if(player_bit[i] == G_PLR0)	reciver="/APJplayer0_mq";
-							else if(player_bit[i] == G_PLR1)	reciver="/APJplayer1_mq";
-							else if(player_bit[i] == G_PLR2)	reciver="/APJplayer2_mq";
-							else if(player_bit[i] == G_PLR3)	reciver="/APJplayer3_mq";
-							else if(player_bit[i] == G_PLR4)	reciver="/APJplayer4_mq";
-							const char *ptr=putputya.c_str();
-							if((writequeue_fdS=mq_open(reciver.c_str(), O_WRONLY|O_NONBLOCK))==-1)
-							{
-								perror("msgq open error");
-								//	exit(1);
-							}
-							char message_text[121];
-							memset(message_text, 0, 121);
-							strncpy(message_text, ptr, 120);
-							if(mq_send(writequeue_fdS, message_text, strlen(message_text), 0)==-1)
-							{
-								perror("msgq send error");
-								//	exit(1);
-							}
-							mq_close(writequeue_fdS);
-						}
-					}
-				}
+	      else if(CondiX & G_SOCKMSG)
+	      {
+		      char buffer[121];
+		      memset(buffer, 0, 121);
+		      READ(new_sockfd, buffer,121);
+		      string putputya(buffer);
+		      unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
+		      for(int i=0;i<5;++i)
+		      {
+			      if(CondiX & player_bit[i])
+			      {
+				      CondiX&~player_bit[i];
+				      string reciver;
+				      if(player_bit[i] == G_PLR0)	reciver="/APJplayer0_mq";
+				      else if(player_bit[i] == G_PLR1)	reciver="/APJplayer1_mq";
+				      else if(player_bit[i] == G_PLR2)	reciver="/APJplayer2_mq";
+				      else if(player_bit[i] == G_PLR3)	reciver="/APJplayer3_mq";
+				      else if(player_bit[i] == G_PLR4)	reciver="/APJplayer4_mq";
+				      const char *ptr=putputya.c_str();
+				      if((writequeue_fdS=mq_open(reciver.c_str(), O_WRONLY|O_NONBLOCK))==-1)
+				      {
+					      perror("msgq open error");
+					      //	exit(1);
+				      }
+				      char message_text[121];
+				      memset(message_text, 0, 121);
+				      strncpy(message_text, ptr, 120);
+				      if(mq_send(writequeue_fdS, message_text, strlen(message_text), 0)==-1)
+				      {
+					      perror("msgq send error");
+					      //	exit(1);
+				      }
+				      mq_close(writequeue_fdS);
+			      }
+		      }
+	      }
 
 
 
@@ -342,38 +342,38 @@ void ReadMessageS(int)
 	mq_notification_event.sigev_signo=SIGUSR2;
 	for(int mend=0;mend<5;++mend)
 	{
-			int ret_mq=mq_notify(readqueue_fdS[mend], &mq_notification_event);
-			if(ret_mq==0)
+		int ret_mq=mq_notify(readqueue_fdS[mend], &mq_notification_event);
+		if(ret_mq==0)
+		{
+			int err;
+			char msg[121];
+			memset(msg, 0, 121);
+			if((err=mq_receive(readqueue_fdS[mend], msg, 120, NULL))!=-1)
 			{
-				int err;
-				char msg[121];
+				unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
+				unsigned char SendMo=G_SOCKMSG;
+				//update
+				SendMo|=player_bit[mend];
+				WRITE(new_sockfd,&SendMo,sizeof(unsigned char));
+				WRITE(new_sockfd,&msg,strlen(msg));
+				//		pointer->postNotice(msg);
 				memset(msg, 0, 121);
-				if((err=mq_receive(readqueue_fdS[mend], msg, 120, NULL))!=-1)
+			}
+			if(errno!=EAGAIN)
+			{
+				if(errno==EBADF)
 				{
-					unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
-					unsigned char SendMo=G_SOCKMSG;
-					//update
-					SendMo|=player_bit[mend];
-					WRITE(new_sockfd,&SendMo,sizeof(unsigned char));
-					WRITE(new_sockfd,&msg,strlen(msg));
-			//		pointer->postNotice(msg);
-					memset(msg, 0, 121);
+					perror("bad file descriptor");
 				}
-				if(errno!=EAGAIN)
+				if(errno==EINTR)
 				{
-					if(errno==EBADF)
-					{
-						perror("bad file descriptor");
-					}
-					if(errno==EINTR)
-					{
-						perror("Signal interference");
-					}
-					perror("mq receive");
-					//	exit(1);
+					perror("Signal interference");
 				}
+				perror("mq receive");
+				//	exit(1);
 			}
 		}
+	}
 }
 
 
@@ -395,10 +395,10 @@ void QueueSetupS(int player)
 		FdNum=0;
 	}
 	else if(player == G_PLR1)
-		{
-			mq_nameS="/APJplayer1_mq";
-			FdNum=1;
-		}
+	{
+		mq_nameS="/APJplayer1_mq";
+		FdNum=1;
+	}
 	else if(player == G_PLR2)
 	{
 		mq_nameS="/APJplayer2_mq";
@@ -441,32 +441,32 @@ void QueueSetupS(int player)
 void QueueCleanerS(int player)
 {
 
-int FdNum;
-if(player == G_PLR0)
-{
-	mq_nameS="/APJplayer0_mq";
-	FdNum=0;
-}
-else if(player == G_PLR1)
+	int FdNum;
+	if(player == G_PLR0)
+	{
+		mq_nameS="/APJplayer0_mq";
+		FdNum=0;
+	}
+	else if(player == G_PLR1)
 	{
 		mq_nameS="/APJplayer1_mq";
 		FdNum=1;
 	}
-else if(player == G_PLR2)
-{
-	mq_nameS="/APJplayer2_mq";
-	FdNum=2;
-}
-else if(player == G_PLR3)
-{
-	mq_nameS="/APJplayer3_mq";
-	FdNum=3;
-}
-else if(player == G_PLR4)
-{
-	mq_nameS="/APJplayer4_mq";
-	FdNum=4;
-}
+	else if(player == G_PLR2)
+	{
+		mq_nameS="/APJplayer2_mq";
+		FdNum=2;
+	}
+	else if(player == G_PLR3)
+	{
+		mq_nameS="/APJplayer3_mq";
+		FdNum=3;
+	}
+	else if(player == G_PLR4)
+	{
+		mq_nameS="/APJplayer4_mq";
+		FdNum=4;
+	}
 
 	mq_close(readqueue_fdS[FdNum]);
 	if(mq_unlink(mq_nameS.c_str())==-1)

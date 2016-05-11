@@ -342,38 +342,38 @@ void ReadMessageR(int)
 	mq_notification_event.sigev_signo=SIGUSR2;
 	for(int mend=0;mend<5;++mend)
 	{
-			int ret_mq=mq_notify(readqueue_fdR[mend], &mq_notification_event);
-			if(ret_mq==0)
+		int ret_mq=mq_notify(readqueue_fdR[mend], &mq_notification_event);
+		if(ret_mq==0)
+		{
+			int err;
+			char msg[121];
+			memset(msg, 0, 121);
+			if((err=mq_receive(readqueue_fdR[mend], msg, 120, NULL))!=-1)
 			{
-				int err;
-				char msg[121];
+				unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
+				unsigned char SendMo=G_SOCKMSG;
+				//update
+				SendMo|=player_bit[mend];
+				WRITE(sockfd,&SendMo,sizeof(unsigned char));
+				WRITE(sockfd,&msg,strlen(msg));
+				//		pointer->postNotice(msg);
 				memset(msg, 0, 121);
-				if((err=mq_receive(readqueue_fdR[mend], msg, 120, NULL))!=-1)
+			}
+			if(errno!=EAGAIN)
+			{
+				if(errno==EBADF)
 				{
-					unsigned char player_bit[5]={G_PLR0, G_PLR1, G_PLR2, G_PLR3, G_PLR4};
-					unsigned char SendMo=G_SOCKMSG;
-					//update
-					SendMo|=player_bit[mend];
-					WRITE(sockfd,&SendMo,sizeof(unsigned char));
-					WRITE(sockfd,&msg,strlen(msg));
-			//		pointer->postNotice(msg);
-					memset(msg, 0, 121);
+					perror("bad file descriptor");
 				}
-				if(errno!=EAGAIN)
+				if(errno==EINTR)
 				{
-					if(errno==EBADF)
-					{
-						perror("bad file descriptor");
-					}
-					if(errno==EINTR)
-					{
-						perror("Signal interference");
-					}
-					perror("mq receive");
-					//	exit(1);
+					perror("Signal interference");
 				}
+				perror("mq receive");
+				//	exit(1);
 			}
 		}
+	}
 }
 
 
@@ -411,11 +411,11 @@ void QueueSetupR(int player)
 		FdNum=4;
 	}
 
-	   struct sigaction action_to_take;
-	   action_to_take.sa_handler=ReadMessageR;
-	   sigemptyset(&action_to_take.sa_mask);
-	   action_to_take.sa_flags=0;
-	   sigaction(SIGUSR2, &action_to_take, NULL);
+	struct sigaction action_to_take;
+	action_to_take.sa_handler=ReadMessageR;
+	sigemptyset(&action_to_take.sa_mask);
+	action_to_take.sa_flags=0;
+	sigaction(SIGUSR2, &action_to_take, NULL);
 	struct mq_attr mq_attributes;
 	mq_attributes.mq_flags=0;
 	mq_attributes.mq_maxmsg=10;
