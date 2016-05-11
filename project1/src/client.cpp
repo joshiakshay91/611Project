@@ -110,7 +110,7 @@ void client_function(string addrto)
 {
 	int pipefd;
 	const char* pipefifo="/tmp/waiter";
-	
+	mkfifo(pipefifo,0666);
 	int rPid=fork();
 	if(rPid<0)
 	{
