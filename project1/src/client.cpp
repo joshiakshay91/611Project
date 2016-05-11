@@ -124,6 +124,7 @@ void client_function(string addrto)
 		read(pipefd[0], &val, sizeof(val));
 			if(val==1);
 			{
+				usleep(10000);
 				wait(NULL);//zombie
 				return;	//I'm the parent, leave the function
 			}
@@ -236,7 +237,7 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
 
        int vala=1;
 			 write(pipefd[1], &vala, sizeof(vala));
-    //   close(pipefd[1]);
+       close(pipefd[1]);
        unsigned char CondiX=-1;
        short positionC;
        unsigned char changed;
