@@ -23,3 +23,6 @@
 * Process "Socket Map": Inside the while(1) in server.cpp lines 237-250 reads the changes for map refresh and update shm, in client.cpp line 236-249 do the same thing.
 
 * Daemon integration: The whole code runs on Daemon functions in server.cpp line 108 and in client.cpp line 106 start the daemon. The daemon methods are called from test_prg.cpp from line 127-140 at the start of int main().
+
+
+#####install library for using ncurses sudo apt-get install libncurses5-dev ncurses-doc
