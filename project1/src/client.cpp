@@ -178,12 +178,10 @@ Lagain:if((status=connect(sockfd, servinfo->ai_addr, servinfo->ai_addrlen))==-1)
        READ(sockfd,&playerCol,sizeof(int));
        int mapSize=playerRows*playerCol;
        unsigned char tempData;
-       //       sem_t *mysemaphore;
-
+      
        mysemaphore= sem_open("/APJgoldchase", O_CREAT|O_EXCL,
 		       S_IROTH| S_IWOTH| S_IRGRP| S_IWGRP| S_IRUSR| S_IWUSR,1);
-       //if(mysemaphore!=SEM_FAILED) //you are the first palyer
-       //{
+
        areaC=playerRows*playerCol;
        sem_wait(mysemaphore);
        int fd = shm_open("/APJMEMORY", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
